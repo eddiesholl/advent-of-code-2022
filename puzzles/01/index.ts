@@ -16,34 +16,51 @@ type MaxElf = {
 };
 const readLines = () => fs.readFileSync(inputPath, "utf-8").split(/\r?\n/);
 const findMaxElf = (lines: string[]): MaxElf => {
-  let currentElf = 1;
-  let maxElfNumber = 1;
-  let maxElfCalorieCount = 0;
-  let currentElfCalories = 0;
-  for (const line of lines) {
-    if (line === "") {
-      // if the line is blank, move to the next elf
-      currentElf++;
-      currentElfCalories = 0;
-    } else {
-      // else update the current elf calorie total
-      const currentCalorieValue = parseInt(line);
-      currentElfCalories += currentCalorieValue;
+  const result = lines.reduce(
+    (prev, curr) => {
+      if (curr === "") {
+        console.log("empty line");
+        return {
+          ...prev,
+          currentElfNumber: prev.currentElfNumber + 1,
+          currentCalories: 0,
+        };
+      } else {
+        const currentCalorieValue = parseInt(curr);
+        const currentElfCalories = prev.currentCalories + currentCalorieValue;
 
-      if (currentElfCalories > maxElfCalorieCount) {
-        maxElfNumber = currentElf;
-        maxElfCalorieCount = currentElfCalories;
+        console.log(currentElfCalories);
+        console.log(prev.maxCalories);
+        if (currentElfCalories > prev.maxCalories) {
+          console.log("new max");
+          return {
+            ...prev,
+            maxElfNumber: prev.currentElfNumber,
+            currentCalories: currentElfCalories,
+            maxCalories: currentElfCalories,
+          };
+        } else {
+          console.log("keep max");
+          return {
+            ...prev,
+            currentCalories: currentElfCalories,
+          };
+        }
       }
+    },
+    {
+      currentElfNumber: 1,
+      maxElfNumber: 1,
+      currentCalories: 0,
+      maxCalories: 0,
     }
-  }
+  );
   return {
-    number: maxElfNumber,
-    calorieCount: maxElfCalorieCount,
+    number: result.maxElfNumber,
+    calorieCount: result.maxCalories,
   };
 };
 const displayElf = (elf: MaxElf) =>
   console.log(`Elf ${elf.number} has the most calories, ${elf.calorieCount}`);
 
-displayElf(findMaxElf(readLines()));
-
-export { findMaxElf };
+export { findMaxElf, readLines, displayElf };
