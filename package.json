@@ -6,7 +6,8 @@
   "type2": "module",
   "scripts": {
     "puzzle": "ts-node ./puzzles/$PUZZLE/index.ts",
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "author": "eddie.sholl@gmail.com",
   "license": "ISC",
