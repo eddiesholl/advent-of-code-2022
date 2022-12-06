@@ -5,9 +5,9 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const file = await open(path.join(__dirname, "input.txt"));
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = dirname(__filename);
+// const file = await open(path.join(__dirname, "input.txt"));
 
 const inputPath = path.join(__dirname, "input.txt");
 type MaxElf = {
@@ -45,3 +45,5 @@ const displayElf = (elf: MaxElf) =>
   console.log(`Elf ${elf.number} has the most calories, ${elf.calorieCount}`);
 
 displayElf(findMaxElf(readLines()));
+
+export { findMaxElf };

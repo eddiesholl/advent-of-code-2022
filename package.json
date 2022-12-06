@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.ts",
-  "type": "module",
+  "type2": "module",
   "scripts": {
-    "puzzle": "ts-node --esm ./puzzles/$PUZZLE/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "puzzle": "ts-node ./puzzles/$PUZZLE/index.ts",
+    "test": "jest"
   },
   "author": "eddie.sholl@gmail.com",
   "license": "ISC",
@@ -14,5 +14,9 @@
     "ts-node": "^10.9.1",
     "tsc": "^2.0.4",
     "typescript": "^4.9.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.2.4",
+    "ts-jest": "^29.0.3"
   }
 }
