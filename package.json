@@ -5,7 +5,7 @@
   "main": "index.ts",
   "type2": "module",
   "scripts": {
-    "puzzle": "ts-node ./puzzles/$PUZZLE/index.ts",
+    "puzzle": "ts-node ./puzzles/$PUZZLE/run.ts",
     "test": "jest",
     "test:watch": "jest --watch"
   },
