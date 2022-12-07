@@ -1,28 +1,28 @@
-import { a, findFirstOverlap, scorePack, slicePack } from "./index";
+import { processPacks, findFirstOverlap, scorePack, slicePack } from "./index";
 
 describe("03", () => {
   describe("a", () => {
     describe("happy paths", () => {
       it("handles no lines", () => {
-        expect(a([])).toEqual(0);
+        expect(processPacks([])).toEqual(0);
       });
 
       it("handles no overlap", () => {
-        expect(a(["ab"])).toEqual(0);
+        expect(processPacks(["ab"])).toEqual(0);
       });
 
       it("handles overlapping a", () => {
-        expect(a(["aa"])).toEqual(1);
+        expect(processPacks(["aa"])).toEqual(1);
       });
       it("handles more complex overlapping b", () => {
-        expect(a(["abcb"])).toEqual(2);
+        expect(processPacks(["abcb"])).toEqual(2);
       });
       it("processes multiple packs", () => {
-        expect(a(["aa", "zz", "AA", "ZZ"])).toEqual(106);
+        expect(processPacks(["aa", "zz", "AA", "ZZ"])).toEqual(106);
       });
       it("handles the full example", () => {
         expect(
-          a([
+          processPacks([
             "vJrwpWtwJgWrhcsFMMfFFhFp",
             "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL",
             "PmmdzqPrVvPwwTWBwg",

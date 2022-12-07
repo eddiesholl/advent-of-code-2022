@@ -1,6 +1,7 @@
 import { sumValues } from "../common/math";
 
-const a = (lines: string[]) => lines.map(scorePack).reduce(sumValues, 0);
+const processPacks = (lines: string[]) =>
+  lines.map(scorePack).reduce(sumValues, 0);
 const findFirstOverlap = (str1: string, str2: string): number | undefined =>
   Array.from(str1)
     .map((c, ix) => {
@@ -28,4 +29,4 @@ const scorePack = (line: string): number => {
   const overlapIndex = findFirstOverlap(str1, str2);
   return overlapIndex !== undefined ? scoreChar(str1, overlapIndex) : 0;
 };
-export { a, findFirstOverlap, scorePack, slicePack };
+export { processPacks, findFirstOverlap, scorePack, slicePack };
