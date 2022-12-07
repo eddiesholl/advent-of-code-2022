@@ -17,16 +17,36 @@ describe("03", () => {
       it("handles more complex overlapping b", () => {
         expect(a(["abcb"])).toEqual(2);
       });
+      it("processes multiple packs", () => {
+        expect(a(["aa", "zz", "AA", "ZZ"])).toEqual(106);
+      });
+      it("handles the full example", () => {
+        expect(
+          a([
+            "vJrwpWtwJgWrhcsFMMfFFhFp",
+            "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL",
+            "PmmdzqPrVvPwwTWBwg",
+            "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn",
+            "ttgJtRGJQctTZtZT",
+            "CrZsJsPPZsGzwwsLwLmpwMDw",
+          ])
+        ).toEqual(157);
+      });
     });
   });
 
   describe("findIntersectionIndex", () => {
     it("handles empty arrays", () => {
-      expect(findIntersectionIndex([], [])).toEqual([]);
+      expect(findIntersectionIndex("", "")).toEqual([]);
     });
 
     it("handles a simple overlap", () => {
-      expect(findIntersectionIndex(["a"], ["a"])).toEqual([0]);
+      expect(findIntersectionIndex("a", "a")).toEqual([0]);
+    });
+    it("handles item 2 from the example", () => {
+      expect(
+        findIntersectionIndex("jqHRNqRjqzjGDLGL", "rsFMfFZSrLrFZsSL")
+      ).toEqual([13]);
     });
   });
 
@@ -45,6 +65,12 @@ describe("03", () => {
     it("handles odd counts", () => {
       expect(slicePack("abc")).toStrictEqual(["ab", "c"]);
     });
+    it("handles item 2 from the example", () => {
+      expect(slicePack("jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL")).toStrictEqual([
+        "jqHRNqRjqzjGDLGL",
+        "rsFMfFZSrLrFZsSL",
+      ]);
+    });
   });
 
   describe("scorePack", () => {
@@ -52,8 +78,14 @@ describe("03", () => {
       expect(scorePack("abcb")).toEqual(2);
     });
 
-    it.only("scores a capital overlap", () => {
+    it("scores a capital overlap", () => {
       expect(scorePack("ZbcZ")).toEqual(52);
+    });
+    it("handles item 1 from the example", () => {
+      expect(scorePack("vJrwpWtwJgWrhcsFMMfFFhFp")).toEqual(16);
+    });
+    it("handles item 2 from the example", () => {
+      expect(scorePack("jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL")).toEqual(38);
     });
   });
 });
