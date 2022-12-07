@@ -1,13 +1,8 @@
-import path from "path";
-import fs from "fs";
-
-const inputPath = path.join(__dirname, "input.txt");
 interface MaxElf {
   number: Number;
   calorieCount: Number;
 }
 
-const readLines = () => fs.readFileSync(inputPath, "utf-8").split(/\r?\n/);
 const findMaxElf = (lines: string[]): MaxElf => {
   const result = lines.reduce(
     (prev, curr) => {
@@ -48,4 +43,4 @@ const findMaxElf = (lines: string[]): MaxElf => {
 const displayElf = (elf: MaxElf) =>
   console.log(`Elf ${elf.number} has the most calories, ${elf.calorieCount}`);
 
-export { findMaxElf, readLines, displayElf };
+export { findMaxElf, displayElf };

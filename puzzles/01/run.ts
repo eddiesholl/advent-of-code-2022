@@ -1,3 +1,4 @@
-import { displayElf, findMaxElf, readLines } from "./index";
+import { readLines } from "../common/input";
+import { displayElf, findMaxElf } from "./index";
 
-displayElf(findMaxElf(readLines()));
+displayElf(findMaxElf(readLines(__dirname)));
