@@ -1,7 +1,7 @@
-type File = {
+export type File = {
   name: string;
   size: number;
-  directory: Directory;
+  // directory: Directory;
 };
 type Directory = {
   name: string;
@@ -17,15 +17,47 @@ const parseCommands = (lines: string[]): Directory => {
     name: "/",
     parent: null,
   };
-  const currentDirectory = rootDir;
+  let currentDirectory = rootDir;
   lines.forEach((line) => {
     const action = parseLine(line);
     switch (action.kind) {
       case "directory":
+        //REVISIT: Find better way to deal with starting edge case
+        if (action.name === "/") {
+          currentDirectory = rootDir;
+          break;
+        }
+        const possibleNextDir = currentDirectory.children.find(
+          (d) => d.name === action.name
+        );
+        if (possibleNextDir) {
+          currentDirectory = possibleNextDir;
+        } else {
+          const newDir: Directory = {
+            children: [],
+            files: [],
+            name: action.name,
+            parent: currentDirectory,
+          };
+          currentDirectory.children.push(newDir);
+          currentDirectory = newDir;
+        }
         break;
       case "file":
+        const possibleNextFile = currentDirectory.files.find(
+          (d) => d.name === action.name
+        );
+        if (!possibleNextFile) {
+          const newFile: File = {
+            name: action.name,
+            size: action.size,
+            // directory: currentDirectory,
+          };
+          currentDirectory.files.push(newFile);
+        }
         break;
       case "up":
+        currentDirectory = currentDirectory.parent || currentDirectory;
         break;
     }
   });
@@ -49,11 +81,14 @@ type NoOp = {
 type Action = EnterDirectory | AddFile | MoveUp | NoOp;
 const parseLine = (line: string): Action => {
   const cdPattern = /\$ cd (.*)/;
-  const filePattern = /(\d+) (\w+)/;
+  const filePattern = /(\d+) ([\w\.]+)/;
   const cdMatch = line.match(cdPattern);
   const fileMatch = line.match(filePattern);
   if (cdMatch) {
-    return { kind: "directory", name: cdMatch[1] };
+    const target = cdMatch[1];
+    return target === ".."
+      ? { kind: "up" }
+      : { kind: "directory", name: target };
   } else if (fileMatch) {
     return { kind: "file", name: fileMatch[2], size: parseInt(fileMatch[1]) };
   } else {
@@ -61,4 +96,4 @@ const parseLine = (line: string): Action => {
   }
 };
 const b = () => void 0;
-export { parseCommands, b };
+export { parseCommands, parseLine, Directory };
