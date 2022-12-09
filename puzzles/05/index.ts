@@ -1,5 +1,3 @@
-const a = (lines: string[]) => void 0;
-const b = () => void 0;
 type Stack = {
   number: number;
   items: string[];
@@ -56,14 +54,14 @@ const processMoves = (
   const workingStack = {
     ...startingStack,
   };
-  renderStack(workingStack);
+  // renderStack(workingStack);
 
   moves.forEach((move) => {
     if (move === undefined) {
       return;
     }
-    renderMove(move);
-    console.log();
+    // renderMove(move);
+    // console.log();
     let shiftCounter = 0;
     while (shiftCounter < move.n) {
       const moving = workingStack[move.from].items.shift();
@@ -72,7 +70,7 @@ const processMoves = (
       }
       shiftCounter++;
     }
-    renderStack(workingStack);
+    // renderStack(workingStack);
   });
   return workingStack;
 };
