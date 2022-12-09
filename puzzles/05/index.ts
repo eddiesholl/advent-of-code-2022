@@ -1,6 +1,4 @@
-type Stack = {
-  items: string[];
-};
+type Stack = string[];
 export type StackStore = Record<number, Stack>;
 const parseStackLine = (store: StackStore) => (line: string) => {
   let charCounter = 0;
@@ -9,13 +7,8 @@ const parseStackLine = (store: StackStore) => (line: string) => {
     const substr = line.substring(charCounter, charCounter + 3);
     const match = substr.match(/\[([A-Z])\]/);
     if (match) {
-      const stackToUpdate = store[stackCounter] || {
-        number: stackCounter,
-        items: [],
-      };
-      store[stackCounter] = {
-        items: stackToUpdate.items.concat(match[1]),
-      };
+      const stackToUpdate: Stack = store[stackCounter] || [];
+      store[stackCounter] = stackToUpdate.concat(match[1]);
     }
     charCounter += 4;
     stackCounter++;
@@ -62,9 +55,9 @@ const processMoves = (
     // console.log();
     let shiftCounter = 0;
     while (shiftCounter < move.n) {
-      const moving = workingStack[move.from].items.shift();
+      const moving = workingStack[move.from].shift();
       if (moving !== undefined) {
-        workingStack[move.to].items.unshift(moving);
+        workingStack[move.to].unshift(moving);
       }
       shiftCounter++;
     }
@@ -73,18 +66,16 @@ const processMoves = (
   return workingStack;
 };
 const selectFirstItems = (stack: StackStore): string[] =>
-  Object.values(stack).map((stack) => stack.items[0]);
+  Object.values(stack).map((stack) => stack[0]);
 
-const renderStack = (stack: StackStore): void => {
-  const stacks = Object.values(stack);
-  const height = stacks
-    .map((stack) => stack.items.length)
-    .sort((a, b) => b - a)[0];
+const renderStack = (stackStore: StackStore): void => {
+  const stacks = Object.values(stackStore);
+  const height = stacks.map((stack) => stack.length).sort((a, b) => b - a)[0];
   const rows = [];
   let rowCounter = 0;
   while (rowCounter < height) {
     const items = stacks
-      .map((stack) => stack.items[rowCounter])
+      .map((stack) => stack[rowCounter])
       .map((item) => (item ? "[" + item + "]" : "   "))
       .join(" ");
     rows.push(items);
