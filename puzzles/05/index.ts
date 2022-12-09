@@ -4,7 +4,7 @@ type Stack = {
   number: number;
   items: string[];
 };
-type StackStore = Record<number, Stack>;
+export type StackStore = Record<number, Stack>;
 const parseStackLine = (store: StackStore) => (line: string) => {
   let charCounter = 0;
   let stackCounter = 1;
@@ -32,4 +32,84 @@ const parseStacks = (lines: string[]): StackStore => {
 
   return stacks;
 };
-export { a, b, parseStackLine };
+export type Move = {
+  n: number;
+  from: number;
+  to: number;
+};
+const parseMoves = (lines: string[]): (Move | undefined)[] =>
+  lines.map((line) => {
+    const match = line.match(/move (\d+) from (\d+) to (\d+)/);
+    if (match) {
+      return {
+        n: parseInt(match[1]),
+        from: parseInt(match[2]),
+        to: parseInt(match[3]),
+      };
+    }
+  });
+
+const processMoves = (
+  startingStack: StackStore,
+  moves: (Move | undefined)[]
+): StackStore => {
+  const workingStack = {
+    ...startingStack,
+  };
+  renderStack(workingStack);
+
+  moves.forEach((move) => {
+    if (move === undefined) {
+      return;
+    }
+    renderMove(move);
+    console.log();
+    let shiftCounter = 0;
+    while (shiftCounter < move.n) {
+      const moving = workingStack[move.from].items.shift();
+      if (moving !== undefined) {
+        workingStack[move.to].items.unshift(moving);
+      }
+      shiftCounter++;
+    }
+    renderStack(workingStack);
+  });
+  return workingStack;
+};
+const selectFirstItems = (stack: StackStore): string[] =>
+  Object.values(stack)
+    .sort((a, b) => a.number - b.number)
+    .map((stack) => stack.items[0]);
+
+const renderStack = (stack: StackStore): void => {
+  const stacks = Object.values(stack);
+  const height = stacks
+    .map((stack) => stack.items.length)
+    .sort((a, b) => b - a)[0];
+  const rows = [];
+  let rowCounter = 0;
+  while (rowCounter < height) {
+    const items = stacks
+      .map((stack) => stack.items[rowCounter])
+      .map((item) => (item ? "[" + item + "]" : "   "))
+      .join(" ");
+    rows.push(items);
+    rowCounter++;
+  }
+  const numbers = stacks.map((stack) => " " + stack.number + " ").join(" ");
+  rows.push(numbers);
+  console.log(rows.join("\n"));
+  // return rows;
+};
+
+const renderMove = (move: Move): void => {
+  console.log(`move ${move.n} from ${move.from} to ${move.to}`);
+};
+
+export {
+  parseStackLine,
+  parseStacks,
+  parseMoves,
+  processMoves,
+  selectFirstItems,
+};

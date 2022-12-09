@@ -1,5 +1,13 @@
 import { readLines } from "../common/input";
-import { a } from "./index";
+import {
+  parseMoves,
+  parseStacks,
+  processMoves,
+  selectFirstItems,
+} from "./index";
 
-const score = a(readLines(__dirname));
-console.log("Score is " + score);
+const stack = parseStacks(readLines(__dirname, "stacks.txt"));
+const moves = parseMoves(readLines(__dirname, "moves.txt"));
+const result = processMoves(stack, moves);
+const topItems = selectFirstItems(result);
+console.log("Top stacks are " + topItems);
