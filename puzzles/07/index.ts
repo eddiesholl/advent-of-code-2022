@@ -1,13 +1,15 @@
+import { sumValues } from "../common/math";
+
 export type File = {
   name: string;
   size: number;
-  // directory: Directory;
 };
 type Directory = {
   name: string;
   files: File[];
   children: Directory[];
   parent: Directory | null;
+  totalSize?: number;
 };
 
 const parseCommands = (lines: string[]): Directory => {
@@ -51,7 +53,6 @@ const parseCommands = (lines: string[]): Directory => {
           const newFile: File = {
             name: action.name,
             size: action.size,
-            // directory: currentDirectory,
           };
           currentDirectory.files.push(newFile);
         }
@@ -95,5 +96,25 @@ const parseLine = (line: string): Action => {
     return { kind: "noop" };
   }
 };
-const b = () => void 0;
-export { parseCommands, parseLine, Directory };
+const calculateDirectorySize = (directory: Directory): number => {
+  const localFileSize = directory.files.map((f) => f.size).reduce(sumValues, 0);
+  const childDirSize = directory.children
+    .map(calculateDirectorySize)
+    .reduce(sumValues, 0);
+  directory.totalSize = localFileSize + childDirSize;
+  return directory.totalSize;
+};
+const findSmallDirectories = (directory: Directory): Directory[] => {
+  const smallChildren = directory.children.flatMap(findSmallDirectories);
+  if (directory.totalSize && directory.totalSize < 100000) {
+    smallChildren.push(directory);
+  }
+  return smallChildren;
+};
+export {
+  parseCommands,
+  parseLine,
+  Directory,
+  findSmallDirectories,
+  calculateDirectorySize,
+};

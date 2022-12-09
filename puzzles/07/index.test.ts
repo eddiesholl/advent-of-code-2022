@@ -1,5 +1,36 @@
-import { Directory, parseCommands, parseLine } from "./index";
+import {
+  calculateDirectorySize,
+  Directory,
+  findSmallDirectories,
+  parseCommands,
+  parseLine,
+} from "./index";
 
+const exampleCommands = [
+  "$ cd /",
+  "$ ls",
+  "dir a",
+  "14848514 b.txt",
+  "8504156 c.dat",
+  "dir d",
+  "$ cd a",
+  "$ ls",
+  "dir e",
+  "29116 f",
+  "2557 g",
+  "62596 h.lst",
+  "$ cd e",
+  "$ ls",
+  "584 i",
+  "$ cd ..",
+  "$ cd ..",
+  "$ cd d",
+  "$ ls",
+  "4060174 j",
+  "8033020 d.log",
+  "5626152 d.ext",
+  "7214296 k",
+];
 describe("07", () => {
   describe("parseLine", () => {
     it("handles cd", () => {
@@ -68,7 +99,6 @@ describe("07", () => {
         children: [],
       };
       root.children.push(root_a);
-      // root.children.push(root_b);
       root.children.push(root_d);
       const root_a_e: Directory = {
         parent: root_a,
@@ -77,33 +107,17 @@ describe("07", () => {
         children: [],
       };
       root_a.children.push(root_a_e);
-      expect(
-        parseCommands([
-          "$ cd /",
-          "$ ls",
-          "dir a",
-          "14848514 b.txt",
-          "8504156 c.dat",
-          "dir d",
-          "$ cd a",
-          "$ ls",
-          "dir e",
-          "29116 f",
-          "2557 g",
-          "62596 h.lst",
-          "$ cd e",
-          "$ ls",
-          "584 i",
-          "$ cd ..",
-          "$ cd ..",
-          "$ cd d",
-          "$ ls",
-          "4060174 j",
-          "8033020 d.log",
-          "5626152 d.ext",
-          "7214296 k",
-        ])
-      ).toEqual(root);
+      expect(parseCommands(exampleCommands)).toEqual(root);
+    });
+  });
+  describe("findSmallDirectories", () => {
+    it("works for the example", () => {
+      const dir = parseCommands(exampleCommands);
+      calculateDirectorySize(dir);
+      const smallDirs = findSmallDirectories(dir);
+      expect(smallDirs.length).toEqual(2);
+      expect(smallDirs.map((d) => d.name)).toEqual(["e", "a"]);
+      expect(smallDirs.map((d) => d.totalSize)).toEqual([584, 94853]);
     });
   });
 });
