@@ -1,5 +1,4 @@
 type Stack = {
-  number: number;
   items: string[];
 };
 export type StackStore = Record<number, Stack>;
@@ -15,7 +14,6 @@ const parseStackLine = (store: StackStore) => (line: string) => {
         items: [],
       };
       store[stackCounter] = {
-        number: stackCounter,
         items: stackToUpdate.items.concat(match[1]),
       };
     }
@@ -75,9 +73,7 @@ const processMoves = (
   return workingStack;
 };
 const selectFirstItems = (stack: StackStore): string[] =>
-  Object.values(stack)
-    .sort((a, b) => a.number - b.number)
-    .map((stack) => stack.items[0]);
+  Object.values(stack).map((stack) => stack.items[0]);
 
 const renderStack = (stack: StackStore): void => {
   const stacks = Object.values(stack);
@@ -94,7 +90,7 @@ const renderStack = (stack: StackStore): void => {
     rows.push(items);
     rowCounter++;
   }
-  const numbers = stacks.map((stack) => " " + stack.number + " ").join(" ");
+  const numbers = stacks.map((_stack, ix) => " " + (ix + 1) + " ").join(" ");
   rows.push(numbers);
   console.log(rows.join("\n"));
   // return rows;
