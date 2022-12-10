@@ -12,7 +12,7 @@ type TreeGrid = TreeRow[];
 const parseLine = (line: string, y: number): TreeRow =>
   line.split("").map((s, x) => ({ x, y, height: parseInt(s) }));
 const parseLines = (lines: string[]): TreeGrid => {
-  return lines.map(parseLine);
+  return lines.map(parseLine).filter((row) => row.length > 0);
 };
 const isTreeTallerIn =
   (mover: (location: Location) => Location) =>
@@ -27,6 +27,9 @@ const isTreeTallerIn =
       currentLocation.y < maxY
     ) {
       const currentTree = treeGrid[currentLocation.y][currentLocation.x];
+      if (currentTree === undefined) {
+        console.log("Missing tree at " + JSON.stringify(currentLocation));
+      }
       if (currentTree.height >= startTree.height) {
         return true;
       }
@@ -55,8 +58,8 @@ const isTreeHidden = (tree: Tree, treeGrid: TreeGrid): boolean => {
   const south = isTreeTallerSouth(tree, treeGrid);
   const east = isTreeTallerEast(tree, treeGrid);
   const west = isTreeTallerWest(tree, treeGrid);
-  console.log(tree);
-  console.log(`north:${north} - south:${south} - east:${east} - west:${west}`);
+  // console.log(tree);
+  // console.log(`north:${north} - south:${south} - east:${east} - west:${west}`);
 
   return north && south && east && west;
 };
