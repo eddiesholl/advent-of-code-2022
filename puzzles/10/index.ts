@@ -15,8 +15,8 @@ const parseLines = (lines: string[]): Instruction[] => {
 };
 const processInstructions = (instructions: Instruction[]): number[] => {
   let registerValue = 1;
-  const registerValues: number[] = [];
-  instructions.forEach((instruction) => {
+  const registerValues: number[] = [1];
+  instructions.forEach((instruction, iix) => {
     if (instruction !== null) {
       const nextRegisterValue = registerValue + instruction;
       registerValues.push(registerValue, nextRegisterValue);
@@ -29,7 +29,11 @@ const processInstructions = (instructions: Instruction[]): number[] => {
 };
 const getSignalStrength = (values: number[]): number => {
   return values.reduce((prev, curr, ix) => {
-    return ix % 20 === 0 ? prev + curr * ix : prev;
+    if ([20, 60, 100, 140, 180, 220].includes(ix + 1)) {
+      return prev + curr * (ix + 1);
+    } else {
+      return prev;
+    }
   }, 0);
 };
-export { parseLines, processInstructions, getSignalStrength };
+export { parseLines, processInstructions, getSignalStrength, Instruction };
