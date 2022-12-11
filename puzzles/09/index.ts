@@ -30,11 +30,11 @@ const move = (loc: Location, d: Direction): Location => {
       return { x: loc.x + 1, y: loc.y };
   }
 };
-const closeGap = (gap: number): number => (gap === -2 ? -1 : 2 ? 1 : 0);
+const closeGap = (gap: number): number => (gap === -2 ? -1 : gap === 2 ? 1 : 0);
 const shiftTailToHead = (head: Location, tail: Location): Location => {
   const deltaX = head.x - tail.x;
   const deltaY = head.y - tail.y;
-  return { x: head.x + closeGap(deltaX), y: head.x + closeGap(deltaY) };
+  return { x: head.x - closeGap(deltaX), y: head.y - closeGap(deltaY) };
 };
 const movePiecesSingle = (state: GameState, d: Direction): GameState => {
   const headAfterMove = move(state.head, d);
@@ -44,14 +44,7 @@ const movePiecesSingle = (state: GameState, d: Direction): GameState => {
 
   return { head: headAfterMove, tail: tailAfterMove };
 };
-const movePiecesMultiple = (state: GameState, move: Move): GameState => {
-  let counter = 0;
-  let newState = state;
-  while (counter < move.n) {
-    newState = movePiecesSingle(newState, move.d);
-  }
-  return newState;
-};
+
 const parseMove = (line: string): Move => {
   const matcher = /([RULD]) (\d+)/;
   const match = line.match(matcher);
@@ -71,10 +64,11 @@ const processMoves = (moves: Move[]): number => {
   };
   const tailLocs = new Set<string>();
   moves.forEach((move) => {
+    // console.log(move);
     let counter = 0;
-    // let newState = state;
     while (counter < move.n) {
       state = movePiecesSingle(state, move.d);
+      // console.log(state);
       tailLocs.add(state.tail.x + "-" + state.tail.y);
       counter++;
     }
