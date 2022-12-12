@@ -1,5 +1,6 @@
 import { readLines } from "../common/input";
-import { a } from "./index";
+import { findPath, parseInput } from "./index";
 
-const score = a(readLines(__dirname));
-console.log("Score is " + score);
+const steps = findPath(parseInput(readLines(__dirname, "example.txt")));
+console.log(steps);
+console.log("Score is " + steps.length);
