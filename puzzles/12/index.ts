@@ -33,41 +33,41 @@ const parseInput = (lines: string[]): Game => {
 const findPath = (game: Game): Location[] => {
   return shortestPathTo(game.start, game.end, game.map, []) || [];
 };
+const valueOfHeight = (height: string): number => {
+  const realString = height === "S" ? "a" : height === "E" ? "z" : height;
+  return realString.charCodeAt(0);
+};
 const getCandidateSteps = (
   start: Location,
   map: Map,
   visited: Location[]
 ): Location[] => {
-  // console.log(map[0].length - 1);
   const candidates = [];
-  const hasLeftBuffer = start.x > 0;
-  const hasRightBuffer = start.x < map[0].length - 1;
-  const hasTopBuffer = start.y > 0;
-  const hasBottomBuffer = start.y < map.length - 1;
+  const currentHeight = valueOfHeight(map[start.y][start.x]);
+  // console.log(`Start x:${start.x} y:${start.y}`);
+  // console.log("height " + currentHeightNumber);
+  const candidateUp = { x: start.x, y: start.y - 1 };
+  const candidateRight = { x: start.x + 1, y: start.y };
+  const candidateDown = { x: start.x, y: start.y + 1 };
+  const candidateLeft = { x: start.x - 1, y: start.y };
 
-  // hasTopBuffer &&
-  //   hasLeftBuffer &&
-  //   candidates.push({ x: start.x - 1, y: start.y - 1 });
-  hasTopBuffer && candidates.push({ x: start.x, y: start.y - 1 });
-  // hasTopBuffer &&
-  //   hasRightBuffer &&
-  //   candidates.push({ x: start.x + 1, y: start.y + 1 });
-  hasRightBuffer && candidates.push({ x: start.x + 1, y: start.y });
-  // hasRightBuffer &&
-  //   hasBottomBuffer &&
-  //   candidates.push({ x: start.x + 1, y: start.y + 1 });
-  hasBottomBuffer && candidates.push({ x: start.x, y: start.y + 1 });
-  // hasBottomBuffer &&
-  //   hasLeftBuffer &&
-  //   candidates.push({ x: start.x - 1, y: start.y + 1 });
-  hasLeftBuffer && candidates.push({ x: start.x - 1, y: start.y });
+  start.y > 0 && candidates.push(candidateUp);
+  start.x < map[0].length - 1 && candidates.push(candidateRight);
+  start.y < map.length - 1 && candidates.push(candidateDown);
+  start.x > 0 && candidates.push(candidateLeft);
 
-  const unvisitedCandidates = candidates.filter(
-    (loc) => !visited.some((v) => v.x === loc.x && v.y === loc.y)
-  );
+  const unvisitedAndClimbable = candidates
+    .filter((loc) => !visited.some((v) => v.x === loc.x && v.y === loc.y))
+    .filter((loc) => {
+      const candidateHeight = valueOfHeight(map[loc.y][loc.x]);
+      // console.log(`Candidate x:${loc.x} y:${loc.y}`);
+      // console.log("candidate height " + candidateHeight.charCodeAt(0));
+      return candidateHeight - currentHeight < 2;
+      // console.log(canClimb);
+    });
   // console.log(`candidates for x:${start.x}, y:${start.y}`);
   // console.log(unvisitedCandidates);
-  return unvisitedCandidates;
+  return unvisitedAndClimbable;
 };
 const shortestPathTo = (
   start: Location,

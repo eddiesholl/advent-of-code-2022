@@ -24,7 +24,7 @@ describe("12", () => {
       );
       expect(locations.length).toEqual(31);
       expect(locations[0]).toEqual({ x: 0, y: 0 });
-      expect(locations.slice(-1)).toEqual({ x: 5, y: 2 });
+      expect(locations.slice(-1)).toEqual([{ x: 4, y: 2 }]);
     });
   });
 });
