@@ -9,6 +9,31 @@ type Monkey = {
   ifTrue: MonkeyId;
   ifFalse: MonkeyId;
 };
+type GameState = Record<MonkeyId, number[]>;
+const processRound = (monkeys: Monkey[], gameState: GameState): GameState => {
+  const nextState = {
+    ...gameState,
+  };
+  monkeys.forEach((monkey) => {
+    const startedWith = gameState[monkey.name];
+    startedWith.forEach((n) => {
+      const withWorry =
+        monkey.operand === "*"
+          ? n * monkey.operationValue
+          : monkey.operand === "+"
+          ? n + monkey.operationValue
+          : n * n;
+      const bored = Math.floor(withWorry / 3);
+      if (bored % monkey.test === 0) {
+        nextState[monkey.ifTrue].push(bored);
+      } else {
+        nextState[monkey.ifFalse].push(bored);
+      }
+    });
+    nextState[monkey.name] = [];
+  });
+  return nextState;
+};
 const parseInput = (lines: string[]): Monkey[] => {
   const result: Monkey[] = [];
   let lineCounter = 0;
@@ -45,5 +70,12 @@ const parseInput = (lines: string[]): Monkey[] => {
 
   return result;
 };
-const b = () => void 0;
-export { parseInput, b };
+const createGameState = (monkeys: Monkey[]): GameState => {
+  const result: GameState = {};
+  monkeys.forEach((monkey) => {
+    result[monkey.name] = monkey.items;
+  });
+
+  return result;
+};
+export { parseInput, processRound, createGameState };

@@ -1,7 +1,18 @@
 import { readLines } from "../common/input";
-import { parseInput } from "./index";
+import { createGameState, parseInput, processRound } from "./index";
 
 describe("11", () => {
+  describe("processRound", () => {
+    it("handles the example", () => {
+      const monkeys = parseInput(readLines(__dirname, "example.txt"));
+      const gs = createGameState(monkeys);
+      const nextState = processRound(monkeys, gs);
+      expect(nextState[0]).toEqual([20, 23, 27, 26]);
+      expect(nextState[1]).toEqual([2080, 25, 167, 207, 401, 1046]);
+      expect(nextState[2]).toEqual([]);
+      expect(nextState[3]).toEqual([]);
+    });
+  });
   describe("parseInput", () => {
     it("handles example monkeys", () => {
       expect(parseInput(readLines(__dirname, "example.txt"))).toEqual([
