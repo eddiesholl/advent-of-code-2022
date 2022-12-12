@@ -1,7 +1,43 @@
 import { readLines } from "../common/input";
-import { createGameState, parseInput, processRound } from "./index";
+import {
+  busiestMonkeys,
+  createGameState,
+  parseInput,
+  processRound,
+} from "./index";
 
 describe("11", () => {
+  describe("busiestMonkeys", () => {
+    it("handles empty monkeys", () => {
+      expect(busiestMonkeys([])).toEqual([]);
+    });
+    it("sorts correctly", () => {
+      expect(
+        busiestMonkeys([
+          {
+            name: 0,
+            items: [79, 98],
+            operand: "*",
+            operationValue: 19,
+            test: 23,
+            ifTrue: 2,
+            ifFalse: 3,
+            inspections: 10,
+          },
+          {
+            name: 1,
+            items: [54, 65, 75, 74],
+            operand: "+",
+            operationValue: 6,
+            test: 19,
+            ifTrue: 2,
+            ifFalse: 0,
+            inspections: 5,
+          },
+        ])
+      ).toEqual([10, 5]);
+    });
+  });
   describe("processRound", () => {
     it("handles the example", () => {
       const monkeys = parseInput(readLines(__dirname, "example.txt"));
@@ -24,6 +60,7 @@ describe("11", () => {
           test: 23,
           ifTrue: 2,
           ifFalse: 3,
+          inspections: 0,
         },
         {
           name: 1,
@@ -33,6 +70,7 @@ describe("11", () => {
           test: 19,
           ifTrue: 2,
           ifFalse: 0,
+          inspections: 0,
         },
         {
           name: 2,
@@ -42,6 +80,7 @@ describe("11", () => {
           test: 13,
           ifTrue: 1,
           ifFalse: 3,
+          inspections: 0,
         },
         {
           name: 3,
@@ -51,6 +90,7 @@ describe("11", () => {
           test: 17,
           ifTrue: 0,
           ifFalse: 1,
+          inspections: 0,
         },
       ]);
     });

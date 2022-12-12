@@ -1,5 +1,5 @@
 import { readLines } from "../common/input";
-import { a } from "./index";
+import { busiestMonkeys, parseInput, processRounds } from "./index";
 
-const score = a(readLines(__dirname));
-console.log("Score is " + score);
+const scores = busiestMonkeys(processRounds(parseInput(readLines(__dirname))));
+console.log("Score is " + scores[0] * scores[1]);

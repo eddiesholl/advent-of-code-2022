@@ -8,8 +8,23 @@ type Monkey = {
   test: number;
   ifTrue: MonkeyId;
   ifFalse: MonkeyId;
+  inspections: number;
 };
 type GameState = Record<MonkeyId, number[]>;
+const processRounds = (monkeys: Monkey[]): Monkey[] => {
+  let roundCounter = 0;
+  let gameState = createGameState(monkeys);
+  while (roundCounter < 20) {
+    gameState = processRound(monkeys, gameState);
+    roundCounter++;
+  }
+  return monkeys;
+};
+const busiestMonkeys = (monkeys: Monkey[]): number[] => {
+  return monkeys
+    .sort((m1, m2) => m2.inspections - m1.inspections)
+    .map((m) => m.inspections);
+};
 const processRound = (monkeys: Monkey[], gameState: GameState): GameState => {
   const nextState = {
     ...gameState,
@@ -29,6 +44,7 @@ const processRound = (monkeys: Monkey[], gameState: GameState): GameState => {
       } else {
         nextState[monkey.ifFalse].push(bored);
       }
+      monkey.inspections = monkey.inspections + 1;
     });
     nextState[monkey.name] = [];
   });
@@ -64,6 +80,7 @@ const parseInput = (lines: string[]): Monkey[] => {
       test,
       ifTrue,
       ifFalse,
+      inspections: 0,
     });
     lineCounter += 7;
   }
@@ -78,4 +95,10 @@ const createGameState = (monkeys: Monkey[]): GameState => {
 
   return result;
 };
-export { parseInput, processRound, createGameState };
+export {
+  parseInput,
+  processRound,
+  createGameState,
+  busiestMonkeys,
+  processRounds,
+};
