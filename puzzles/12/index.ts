@@ -31,11 +31,14 @@ const parseInput = (lines: string[]): Game => {
   return { start, end, map };
 };
 const findPath = (game: Game): Location[] => {
-  return shortestPathTo(game.start, game.end, game.map, []) || [];
+  return shortestPathTo(game.start, game.end, game.map, [], 200) || [];
 };
 const valueOfHeight = (height: string): number => {
   const realString = height === "S" ? "a" : height === "E" ? "z" : height;
   return realString.charCodeAt(0);
+};
+const distanceBetween = (a: Location, b: Location): Location => {
+  return { x: Math.abs(a.x - b.x), y: Math.abs(a.y - b.y) };
 };
 const getCandidateSteps = (
   start: Location,
@@ -64,43 +67,79 @@ const getCandidateSteps = (
       // console.log("candidate height " + candidateHeight.charCodeAt(0));
       return candidateHeight - currentHeight < 2;
       // console.log(canClimb);
+    })
+    .sort((a, b) => {
+      const aChar = map[a.y][a.x];
+      const bChar = map[b.y][b.x];
+      if (aChar === "E") {
+        return -1;
+      }
+      if (bChar === "E") {
+        return 1;
+      }
+      return valueOfHeight(bChar) - valueOfHeight(aChar);
     });
   // console.log(`candidates for x:${start.x}, y:${start.y}`);
   // console.log(unvisitedCandidates);
   return unvisitedAndClimbable;
 };
+const logLocation = (l: Location, msg: string) => {
+  if (msg) {
+    // console.log(msg);
+  }
+  // console.log(`x: ${l.x}, y:${l.y}`);
+};
 const shortestPathTo = (
   start: Location,
   end: Location,
   map: Map,
-  visited: Location[]
+  visited: Location[],
+  bailDepth: number
 ): Location[] | null => {
+  logLocation(start, "Starting with loc:");
   if (start.x === end.x && start.y === end.y) {
     // console.log("found it");
     // console.log(visited);
+    console.log("terminate at length " + visited.length);
     return visited;
+  }
+  if (visited.length > bailDepth) {
+    console.log("bailing at depth " + bailDepth);
+    return null;
   }
   const candidateSteps = getCandidateSteps(start, map, visited);
   if (candidateSteps.length === 0) {
+    // console.log("bailing because no candidate steps");
+    const delta = distanceBetween(start, end);
+    // console.log(`x: ${delta.x} - y: ${delta.y}`);
+    // console.log(visited);
     return null;
   }
   const nextVisited = visited.concat(start);
-  const pathsToEnd = candidateSteps
-    .map((nextLocation) => shortestPathTo(nextLocation, end, map, nextVisited))
-    .filter((l) => l !== null)
-    .sort((l1, l2) => {
-      if (l1 !== null && l2 !== null) {
-        return l1.length - l2.length;
-      } else if (l1 === null) {
-        return 1;
-      } else {
-        return -1;
-      }
-    });
-  if (pathsToEnd.length === 0) {
-    return null;
-  } else {
-    return pathsToEnd[0];
-  }
+  let bestPath: Location[] | null = null;
+  candidateSteps.forEach((nextLocation) => {
+    logLocation(nextLocation, "trying nextLocation");
+    logLocation(start, "within start");
+
+    const nextBailDepth = bestPath
+      ? Math.min(bailDepth, bestPath.length)
+      : bailDepth;
+    const nextResult = shortestPathTo(
+      nextLocation,
+      end,
+      map,
+      nextVisited,
+      nextBailDepth
+    );
+    if (
+      nextResult !== null &&
+      (bestPath === null || nextResult.length < bestPath.length)
+    ) {
+      console.log("updating bestPath to " + nextResult.length);
+      bestPath = nextResult;
+    }
+  });
+  // console.log("return bestPath with length " + (bestPath || []).length);
+  return bestPath;
 };
-export { parseInput, findPath };
+export { parseInput, findPath, getCandidateSteps };

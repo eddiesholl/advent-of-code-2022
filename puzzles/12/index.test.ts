@@ -1,9 +1,37 @@
 import { readLines } from "../common/input";
-import { findPath, parseInput } from "./index";
+import { findPath, getCandidateSteps, parseInput } from "./index";
 
 describe("12", () => {
+  describe("getCandidateSteps", () => {
+    it("prefers jumping to the finish", () => {
+      const game = parseInput(readLines(__dirname, "example.txt"));
+      const candidateSteps = getCandidateSteps({ x: 4, y: 2 }, game.map, []);
+      expect(candidateSteps.length).toEqual(4);
+      expect(candidateSteps[0]).toEqual({ x: 5, y: 2 });
+    });
+    it("finds full options", () => {
+      const game = parseInput(readLines(__dirname, "example.txt"));
+      const candidateSteps = getCandidateSteps({ x: 1, y: 1 }, game.map, []);
+      expect(candidateSteps).toEqual([
+        { x: 2, y: 1 }, // c
+        { x: 1, y: 2 }, // c
+        { x: 1, y: 0 }, // a
+        { x: 0, y: 1 }, // a
+      ]);
+    });
+    it("does not suggest visited locations", () => {
+      const game = parseInput(readLines(__dirname, "example.txt"));
+      const candidateSteps = getCandidateSteps({ x: 1, y: 1 }, game.map, [
+        { x: 1, y: 0 },
+        { x: 2, y: 1 },
+        { x: 1, y: 2 },
+        { x: 0, y: 1 },
+      ]);
+      expect(candidateSteps).toEqual([]);
+    });
+  });
   describe("parseInput", () => {
-    it("handles emoty lines", () => {
+    it("handles empty lines", () => {
       expect(parseInput(readLines(__dirname, "example.txt"))).toEqual({
         start: { x: 0, y: 0 },
         end: { x: 5, y: 2 },
