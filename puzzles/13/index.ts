@@ -24,45 +24,70 @@ const parseLines = (lines: string[]): PacketPair[] => {
   return result;
 };
 type CompareResult = true | false | null;
+const log = (msg: string, depth: number): void => {
+  // console.log(Array(depth).fill("  ").join("") + msg);
+};
 const comparePacketItems = (
   first: PacketItem,
-  second: PacketItem
+  second: PacketItem,
+  depth: number = 0
 ): CompareResult => {
-  console.log(`${JSON.stringify(first)} vs ${JSON.stringify(second)}`);
+  log(`Compare ${JSON.stringify(first)} vs ${JSON.stringify(second)}`, depth);
   if (Array.isArray(first) && Array.isArray(second)) {
-    console.log("arrays");
     let ix = 0;
     while (ix < first.length) {
       if (ix === second.length) {
+        log(
+          "Right side ran out of items, so inputs are not in the right order",
+          depth
+        );
         return false;
       }
-      const itemResult = comparePacketItems(first[ix], second[ix]);
+      const itemResult = comparePacketItems(first[ix], second[ix], depth + 1);
       if (itemResult !== null) {
         return itemResult;
       }
       ix++;
     }
     if (first.length < second.length) {
+      log(
+        "Left side ran out of items, so inputs are in the right order",
+        depth
+      );
       return true;
     } else if (second.length < first.length) {
+      log(
+        "Right side ran out of items, so inputs are not in the right order",
+        depth
+      );
       return false;
     }
-    return second.length <= first.length;
+    return null;
   } else if (!Array.isArray(first) && !Array.isArray(second)) {
-    console.log("literals");
-    return first === second ? null : first <= second;
+    if (first < second) {
+      log("Left side is smaller, so inputs are in the right order", depth + 1);
+      return true;
+    }
+    if (second < first) {
+      log(
+        "Right side is smaller, so inputs are not in the right order",
+        depth + 1
+      );
+      return false;
+    }
+    return null;
   } else if (!Array.isArray(first)) {
-    console.log("brackets on first");
-    return comparePacketItems([first], second);
+    log("Mixed types; convert left to [] and retry comparison", depth);
+    return comparePacketItems([first], second, depth);
   } else if (!Array.isArray(second)) {
-    console.log("brackets on second");
-    return comparePacketItems(first, [second]);
+    log("Mixed types; convert right to [] and retry comparison", depth);
+    return comparePacketItems(first, [second], depth);
   }
-  return true;
+  return null;
 };
 const checkPackets = (packets: PacketPair[]): number[] => {
   return packets
-    .filter((pp) => comparePacketItems(pp.first, pp.second) === true)
+    .filter((pp) => comparePacketItems(pp.first, pp.second, 0) === true)
     .map((p) => p.name);
 };
 const b = () => void 0;
