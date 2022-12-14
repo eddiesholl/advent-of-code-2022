@@ -1,5 +1,9 @@
 import { readLines } from "../common/input";
-import { a } from "./index";
+import { sumValues } from "../common/math";
+import { checkPackets, parseLines } from "./index";
 
-const score = a(readLines(__dirname));
+const score = checkPackets(parseLines(readLines(__dirname))).reduce(
+  sumValues,
+  0
+);
 console.log("Score is " + score);
