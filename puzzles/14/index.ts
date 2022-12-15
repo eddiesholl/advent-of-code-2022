@@ -26,8 +26,8 @@ const id = (p: Point) => `${p.x}-${p.y}`;
 const setRock = (grid: Grid, start: Point, end: Point) => {
   const movement = normaliseDirection(delta(start, end));
   let currentLocation = start;
-  console.log(JSON.stringify(start));
-  console.log(JSON.stringify(end));
+  // console.log(JSON.stringify(start));
+  // console.log(JSON.stringify(end));
 
   while (!pointsEqual(currentLocation, end)) {
     grid[id(currentLocation)] = {
@@ -61,17 +61,59 @@ const findLowestRock = (grid: Grid): Location =>
     .filter((l) => l.material === "rock")
     .sort((a, b) => b.y - a.y)[0];
 const sandStart = { x: 500, y: 0 };
+const moveDown = { x: 0, y: 1 };
+const moveDownLeft = { x: -1, y: 1 };
+const moveDownRight = { x: 1, y: 1 };
+const isPointBelow = (a: Point, b: Point) => a.y > b.y;
 const addSand = (grid: Grid, lowestRock: Location): boolean => {
+  let sandLocation = sandStart;
+  let stillMoving = true;
+  while (stillMoving) {
+    console.log(`sand adding at x:${sandLocation.x}, y:${sandLocation.y}`);
+    if (isPointBelow(sandLocation, lowestRock)) {
+      return false;
+    }
+    const idCurrent = id(sandLocation);
+    const pointBelow = move(sandLocation, moveDown);
+    const idBelow = id(pointBelow);
+    const pointBelowLeft = move(sandLocation, moveDownLeft);
+    const idBelowLeft = id(pointBelowLeft);
+    const pointBelowRight = move(sandLocation, moveDownRight);
+    const idBelowRight = id(pointBelowRight);
+    const locationBelow = grid[idBelow];
+    const locationBelowLeft = grid[idBelowLeft];
+    const locationBelowRight = grid[idBelowRight];
+    if (locationBelow === undefined) {
+      sandLocation = pointBelow;
+    } else if (
+      locationBelowLeft === undefined ||
+      locationBelowLeft.material === "air"
+    ) {
+      sandLocation = pointBelowLeft;
+    } else if (
+      locationBelowRight === undefined ||
+      locationBelowRight.material === "air"
+    ) {
+      sandLocation = pointBelowRight;
+    } else if (["rock", "sand"].includes(locationBelow.material)) {
+      grid[idCurrent] = {
+        ...locationBelow,
+        material: "sand",
+      };
+      stillMoving = false;
+    }
+  }
   return true;
 };
 const fillWithSand = (grid: Grid): number => {
   const lowestRock = findLowestRock(grid);
   console.log(`lowest rock = {x:${lowestRock.x}, y:${lowestRock.y}`);
-  let sandCount = -1;
-  let isSandDropped = false;
-  while (!isSandDropped) {
+  let sandCount = 0;
+  let sandSettled = true;
+  while (sandSettled) {
+    console.log("sand count " + sandCount);
     sandCount++;
-    isSandDropped = addSand(grid, lowestRock);
+    sandSettled = addSand(grid, lowestRock);
   }
   return sandCount;
 };

@@ -1,5 +1,5 @@
 import { readLines } from "../common/input";
-import { createGrid, parseLines } from "./index";
+import { createGrid, fillWithSand, parseLines } from "./index";
 
-const score = createGrid(parseLines(readLines(__dirname, "example.txt")));
+const score = fillWithSand(createGrid(parseLines(readLines(__dirname))));
 console.log("Score is " + score);
