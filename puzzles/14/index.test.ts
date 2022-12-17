@@ -12,15 +12,15 @@ describe("14", () => {
     it("sorts correctly", () => {
       const zero5 = { x: 0, y: 5, material: "rock" as Material };
       const one7 = { x: 1, y: 7, material: "rock" as Material };
-      expect(findLowestRock({ "0-5": zero5, "0-7": one7 })).toEqual(one7);
+      expect(findLowestRock({ 5: { 0: zero5 }, 7: { 0: one7 } })).toEqual(one7);
     });
   });
   describe("fillWithSand", () => {
     it("handles the example", () => {
-      const grid = expect(
+      expect(
         fillWithSand(
           createGrid(parseLines(readLines(__dirname, "example.txt")))
-        )
+        ).length
       ).toEqual(24);
     });
   });
@@ -30,26 +30,38 @@ describe("14", () => {
     });
     it("handles the example", () => {
       const grid = createGrid(parseLines(readLines(__dirname, "example.txt")));
-      expect(Object.keys(grid)).toEqual([
-        "498-4",
-        "498-5",
-        "498-6",
-        "497-6",
-        "503-4",
-        "502-4",
-        "502-5",
-        "502-6",
-        "502-7",
-        "502-8",
-        "502-9",
-        "501-9",
-        "500-9",
-        "499-9",
-        "498-9",
-        "497-9",
-        "496-9",
-        "495-9",
-      ]);
+      expect(grid).toEqual({
+        4: {
+          498: { x: 498, y: 4, material: "rock" },
+          502: { x: 502, y: 4, material: "rock" },
+          503: { x: 503, y: 4, material: "rock" },
+        },
+        5: {
+          498: { x: 498, y: 5, material: "rock" },
+          502: { x: 502, y: 5, material: "rock" },
+        },
+        6: {
+          498: { x: 498, y: 6, material: "rock" },
+          497: { x: 497, y: 6, material: "rock" },
+          502: { x: 502, y: 6, material: "rock" },
+        },
+        7: {
+          502: { x: 502, y: 7, material: "rock" },
+        },
+        8: {
+          502: { x: 502, y: 8, material: "rock" },
+        },
+        9: {
+          495: { x: 495, y: 9, material: "rock" },
+          496: { x: 496, y: 9, material: "rock" },
+          497: { x: 497, y: 9, material: "rock" },
+          498: { x: 498, y: 9, material: "rock" },
+          499: { x: 499, y: 9, material: "rock" },
+          500: { x: 500, y: 9, material: "rock" },
+          501: { x: 501, y: 9, material: "rock" },
+          502: { x: 502, y: 9, material: "rock" },
+        },
+      });
     });
   });
 });

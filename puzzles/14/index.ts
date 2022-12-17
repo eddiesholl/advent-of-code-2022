@@ -8,7 +8,8 @@ interface Location extends Point {
   material: Material;
 }
 type Line = Point[];
-type Grid = Record<string, Location>;
+type GridRow = Record<number, Location>;
+type Grid = Record<number, GridRow>;
 type GameState = {
   grid: Grid;
   sandCount: number;
@@ -28,6 +29,14 @@ const move = (p: Point, d: Distance): Point => ({
   y: p.y + d.y,
 });
 const id = (p: Point) => `${p.x}-${p.y}`;
+const setLocation = (grid: Grid, location: Location): void => {
+  let gridRow = grid[location.y];
+  if (gridRow === undefined) {
+    gridRow = {};
+    grid[location.y] = gridRow;
+  }
+  gridRow[location.x] = location;
+};
 const setRock = (grid: Grid, start: Point, end: Point) => {
   const movement = normaliseDirection(delta(start, end));
   let currentLocation = start;
@@ -35,10 +44,10 @@ const setRock = (grid: Grid, start: Point, end: Point) => {
   // console.log(JSON.stringify(end));
 
   while (!pointsEqual(currentLocation, end)) {
-    grid[id(currentLocation)] = {
+    setLocation(grid, {
       ...currentLocation,
       material: "rock",
-    };
+    });
     currentLocation = move(currentLocation, movement);
   }
 };
@@ -63,16 +72,29 @@ const parseLines = (lines: string[]): Line[] => {
 };
 const findLowestRock = (grid: Grid): Location =>
   Object.values(grid)
+    .flatMap((r) => Object.values(r))
     .filter((l) => l.material === "rock")
     .sort((a, b) => b.y - a.y)[0];
+
 const sandStart = { x: 500, y: 0 };
 const moveDown = { x: 0, y: 1 };
 const moveDownLeft = { x: -1, y: 1 };
 const moveDownRight = { x: 1, y: 1 };
+const cloneGrid = (grid: Grid): Grid => {
+  const result: Grid = {};
+  Object.keys(grid).forEach((k) => {
+    const y = parseInt(k);
+    result[y] = {
+      ...grid[y],
+    };
+  });
+  return result;
+};
 const isPointBelow = (a: Point, b: Point) => a.y > b.y;
 const addSand = (state: GameState, lowestRock: Location): GameState => {
   const nextState: GameState = {
-    ...state,
+    grid: cloneGrid(state.grid),
+    sandSettled: state.sandSettled,
     sandCount: state.sandCount + 1,
   };
   let sandLocation = sandStart;
@@ -80,38 +102,42 @@ const addSand = (state: GameState, lowestRock: Location): GameState => {
   while (stillMoving) {
     // console.log(`sand adding at x:${sandLocation.x}, y:${sandLocation.y}`);
     if (isPointBelow(sandLocation, lowestRock)) {
+      console.log(
+        `point ${sandLocation.x},${sandLocation.y} is below lowestRock ${lowestRock.x},${lowestRock.y}`
+      );
       nextState.sandSettled = false;
       return nextState;
     }
-    const idCurrent = id(sandLocation);
     const pointBelow = move(sandLocation, moveDown);
-    const idBelow = id(pointBelow);
     const pointBelowLeft = move(sandLocation, moveDownLeft);
-    const idBelowLeft = id(pointBelowLeft);
     const pointBelowRight = move(sandLocation, moveDownRight);
-    const idBelowRight = id(pointBelowRight);
-    const locationBelow = state.grid[idBelow];
-    const locationBelowLeft = state.grid[idBelowLeft];
-    const locationBelowRight = state.grid[idBelowRight];
-    if (locationBelow === undefined || locationBelow.material === "air") {
+    const rowBelow = state.grid[sandLocation.y + 1];
+    if (rowBelow === undefined) {
       sandLocation = pointBelow;
-    } else if (
-      locationBelowLeft === undefined ||
-      locationBelowLeft.material === "air"
-    ) {
-      sandLocation = pointBelowLeft;
-    } else if (
-      locationBelowRight === undefined ||
-      locationBelowRight.material === "air"
-    ) {
-      sandLocation = pointBelowRight;
-    } else if (["rock", "sand"].includes(locationBelow.material)) {
-      nextState.grid[idCurrent] = {
-        ...locationBelow,
-        material: "sand",
-      };
-      console.log(`Placed sand at x:${sandLocation.x} - y${sandLocation.y}`);
-      stillMoving = false;
+    } else {
+      const locationBelow = rowBelow[pointBelow.x];
+      const locationBelowLeft = rowBelow[pointBelowLeft.x];
+      const locationBelowRight = rowBelow[pointBelowRight.x];
+      if (locationBelow === undefined || locationBelow.material === "air") {
+        sandLocation = pointBelow;
+      } else if (
+        locationBelowLeft === undefined ||
+        locationBelowLeft.material === "air"
+      ) {
+        sandLocation = pointBelowLeft;
+      } else if (
+        locationBelowRight === undefined ||
+        locationBelowRight.material === "air"
+      ) {
+        sandLocation = pointBelowRight;
+      } else if (["rock", "sand"].includes(locationBelow.material)) {
+        setLocation(nextState.grid, {
+          ...sandLocation,
+          material: "sand",
+        });
+        console.log(`Placed sand at x:${sandLocation.x} - y${sandLocation.y}`);
+        stillMoving = false;
+      }
     }
   }
   return nextState;
@@ -132,4 +158,4 @@ const fillWithSand = (grid: Grid): GameState[] => {
   }
   return states;
 };
-export { parseLines, createGrid, fillWithSand, findLowestRock, Material };
+export { parseLines, createGrid, fillWithSand, findLowestRock, Material, Grid };
