@@ -1,9 +1,7 @@
 import { notEmpty, onlyUnique } from "../common/array";
+import { locationEquals, Location } from "../common/location";
+import { pad } from "../common/string";
 
-type Location = {
-  x: number;
-  y: number;
-};
 type Sensor = {
   name: number;
   location: Location;
@@ -14,6 +12,7 @@ type Bounds = {
   bottomRight: Location;
 };
 const getBounds = (sensors: Sensor[]): Bounds => {
+  const firstSensor = sensors[0];
   const result = sensors.reduce(
     (prev, curr) => {
       return {
@@ -35,57 +34,96 @@ const getBounds = (sensors: Sensor[]): Bounds => {
         },
       };
     },
-    { topLeft: { x: 0, y: 0 }, bottomRight: { x: 0, y: 0 } }
+    { topLeft: firstSensor.location, bottomRight: firstSensor.location }
   );
   return result;
 };
 const distanceBetween = (l1: Location, l2: Location): number => {
   return Math.abs(l1.x - l2.x) + Math.abs(l1.y - l2.y);
 };
-const locationsCloserThan = (
-  loc: Location,
-  distance: number,
+const locationsCloserThanBeacon = (
+  sensor: Sensor,
   bounds: Bounds
 ): Location[] => {
+  const distanceToBeacon = distanceBetween(
+    sensor.location,
+    sensor.nearestBeacon
+  );
+  console.log("Beacon range for sensor " + sensor.name);
+  console.log(distanceToBeacon);
   const result: Location[] = [];
-  let y = bounds.topLeft.y;
-  while (y < bounds.bottomRight.y) {
-    let x = bounds.topLeft.x;
-    while (x < bounds.bottomRight.x) {
+  let y = sensor.location.y - distanceToBeacon;
+  const yEnd = sensor.location.y + distanceToBeacon;
+  // console.log(
+  //   `Bounds are x:${bounds.topLeft.x},y:${bounds.topLeft.y} to x:${bounds.bottomRight.x},y:${bounds.bottomRight.y}`
+  // );
+  let x = sensor.location.x - distanceToBeacon;
+  const xEnd = sensor.location.x + distanceToBeacon;
+  let firstHeader = "  ";
+  let secondHeader = "  ";
+  while (x <= xEnd) {
+    if (x % 10 === 0) {
+      secondHeader += "0";
+    } else if (x % 5 === 0) {
+      secondHeader += "5";
+    } else {
+      secondHeader += Math.abs(x % 10).toString();
+    }
+    if (x > 0 && x % 10 === 0) {
+      firstHeader += Math.floor(x / 10).toString();
+    } else if (x > 0 && x % 5 === 0) {
+      firstHeader += Math.floor(x / 10).toString();
+    } else {
+      firstHeader += " ";
+    }
+    x++;
+  }
+  console.log(firstHeader);
+  console.log(secondHeader);
+  while (y <= yEnd) {
+    x = sensor.location.x - distanceToBeacon;
+    let line = pad(y.toString(), bounds.bottomRight.y.toString().length);
+    while (x <= xEnd) {
       const here = { x, y };
-      const distanceToLoc = distanceBetween(loc, here);
-      if (distanceToLoc < distance) {
+      const distanceToLoc = distanceBetween(sensor.location, here);
+      if (distanceToLoc <= distanceToBeacon) {
         result.push(here);
+      }
+      if (locationEquals(sensor.location)(here)) {
+        line += "S";
+      } else if (locationEquals(sensor.nearestBeacon)(here)) {
+        line += "B";
+      } else if (distanceToLoc <= distanceToBeacon) {
+        line += distanceToLoc;
+      } else {
+        line += ".";
       }
       x++;
     }
+    // y == 10 && console.log(line);
+    console.log(line);
     y++;
   }
   return result;
 };
-const locationEquals =
-  (l1: Location) =>
-  (l2: Location): boolean =>
-    l1.x === l2.x && l1.y === l2.y;
+
 const calculateNotBeacons = (sensors: Sensor[], row: number): number => {
   const bounds = getBounds(sensors);
+  console.log(
+    `Bounds are x:${bounds.topLeft.x},y${bounds.topLeft.y} to x:${bounds.bottomRight.x},y${bounds.bottomRight.y}`
+  );
   const beaconFreeLocations = sensors
     .map((sensor) => {
-      const beaconDistance = distanceBetween(
-        sensor.location,
-        sensor.nearestBeacon
-      );
-      const notBeacons = locationsCloserThan(
-        sensor.location,
-        beaconDistance,
-        bounds
-      );
+      const notBeacons = locationsCloserThanBeacon(sensor, bounds);
       return notBeacons;
     })
     .flat()
     .reduce(
       (acc, curr) => acc.concat(acc.find(locationEquals(curr)) ? [] : [curr]),
       [] as Location[]
+    )
+    .filter(
+      (loc) => !sensors.some((s) => locationEquals(loc)(s.nearestBeacon))
     );
   // REVISIT Don't forget about known beacon spots
   const beaconFreeOnRow = beaconFreeLocations.filter((l) => l.y === row);
@@ -99,7 +137,7 @@ const parseLines = (lines: string[]): Sensor[] => {
       );
       if (match !== null) {
         return {
-          name: ix,
+          name: ix + 1,
           location: { x: parseInt(match[1]), y: parseInt(match[2]) },
           nearestBeacon: { x: parseInt(match[3]), y: parseInt(match[4]) },
         };
