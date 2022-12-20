@@ -6,3 +6,6 @@ export function notEmpty<TValue>(
 export function onlyUnique<T>(value: T, index: number, self: T[]) {
   return self.indexOf(value) === index;
 }
+
+export const numDescending = (a: number, b: number) => b - a;
+export const numAscending = (a: number, b: number) => a - b;

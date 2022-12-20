@@ -1,5 +1,9 @@
 import { readLines } from "../common/input";
-import { a } from "./index";
+import { findBestValvePath, parseLines } from "./index";
 
-const score = a(readLines(__dirname));
-console.log("Score is " + score);
+const score = findBestValvePath(
+  parseLines(readLines(__dirname, "example.txt")),
+  30
+);
+console.log("Score is " + score.released);
+console.log("Sequence is " + JSON.stringify(score.ops));
