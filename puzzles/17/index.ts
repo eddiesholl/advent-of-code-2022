@@ -11,6 +11,7 @@ type Rock = {
   shape: RockShape;
   location: Location;
   width: number;
+  falling: boolean;
 };
 type GameState = {
   chamber: Chamber;
@@ -29,6 +30,7 @@ const createRock = (r: number, location: Location): Rock => {
         shape: [new Set([0, 1, 2, 3])],
         location,
         width: 4,
+        falling: false,
       };
     case 1:
       return {
@@ -36,6 +38,7 @@ const createRock = (r: number, location: Location): Rock => {
         shape: [new Set([1]), new Set([0, 1, 2]), new Set([1])],
         location,
         width: 3,
+        falling: false,
       };
     case 2:
       return {
@@ -43,6 +46,7 @@ const createRock = (r: number, location: Location): Rock => {
         shape: [new Set([2]), new Set([2]), new Set([0, 1, 2])],
         location,
         width: 4,
+        falling: false,
       };
     case 3:
       return {
@@ -50,6 +54,7 @@ const createRock = (r: number, location: Location): Rock => {
         shape: [new Set([0]), new Set([0]), new Set([0]), new Set([0])],
         location,
         width: 1,
+        falling: false,
       };
     case 4:
       return {
@@ -57,10 +62,37 @@ const createRock = (r: number, location: Location): Rock => {
         shape: [new Set([0, 1]), new Set([0, 1])],
         location,
         width: 2,
+        falling: false,
       };
   }
 };
-function applyGas({ activeRock }: GameState, jet: Jet) {
+const renderState = (state: GameState) => {
+  let h = state.chamber.length + 5;
+  let x = 0;
+  let currentRow: Row;
+  console.log(state.activeRock);
+  while (h >= 0) {
+    currentRow = state.chamber[h];
+    let rowString = "|";
+    x = 0;
+    const maybeFalling = h >= state.activeRock.location.y;
+    const fallingH = h - state.activeRock.location.y;
+    const fallingRow = fallingH > -1 && state.activeRock.shape[fallingH];
+    while (x < chamberWidth) {
+      const fixedRock = currentRow && currentRow.has(x);
+      const fallingRock =
+        fallingRow && fallingRow.has(x - state.activeRock.location.x);
+      rowString = rowString + (fixedRock ? "#" : fallingRock ? "@" : ".");
+      x++;
+    }
+    rowString = rowString + "|";
+    console.log(rowString);
+    h--;
+  }
+  console.log("---------");
+  console.log("");
+};
+const applyGas = ({ activeRock }: GameState, jet: Jet) => {
   if (jet === "<") {
     if (activeRock.location.x > 0) {
       activeRock.location.x -= 1;
@@ -70,30 +102,42 @@ function applyGas({ activeRock }: GameState, jet: Jet) {
       activeRock.location.x += 1;
     }
   }
-}
+};
 
-function applyFall({ chamber, activeRock }: GameState) {
-  throw new Error("Function not implemented.");
-}
+const applyFall = ({ chamber, activeRock }: GameState) => {
+  if (activeRock.location.y === 0) {
+    activeRock.falling = false;
+    return;
+  }
+  const rockBottom = activeRock.shape.slice(-1)[0];
+  const groundTop = chamber[0] || new Set();
+  if (Array.from(rockBottom).some((r) => groundTop.has(r))) {
+    activeRock.falling = false;
+    return;
+  } else {
+    activeRock.location.y -= 1;
+  }
+};
 
-function rockLanded(currentState: { chamber: Chamber; activeRock: Rock }) {
-  throw new Error("Function not implemented.");
-}
+const rockLanded = ({ activeRock }: GameState) => {
+  return activeRock.falling;
+};
 
-function cloneChamber(chamber: Chamber): Chamber {
-  throw new Error("Function not implemented.");
-}
+const cloneChamber = (chamber: Chamber): Chamber =>
+  chamber.map((r) => new Set(r));
 
-function landRock(currentState: {
-  chamber: Chamber;
-  activeRock: Rock;
-}): Chamber {
-  throw new Error("Function not implemented.");
-}
+const landRock = ({ chamber, activeRock }: GameState) => {
+  const rowsToAdd = [...activeRock.shape].reverse();
+  const nextChamber = cloneChamber(chamber);
+  rowsToAdd.forEach((row) => {
+    const offsetedRow = Array.from(row).map((r) => r + activeRock.location.x);
+    nextChamber.push(new Set(offsetedRow));
+  });
+  return nextChamber;
+};
 
-function highestRock(chamber: Chamber) {
-  throw new Error("Function not implemented.");
-}
+const highestRock = (chamber: Chamber) => chamber.length;
+
 const processRocks = (iterations: number, jets: Jet[]) => {
   let i = 1;
   let r = 0;
@@ -107,10 +151,13 @@ const processRocks = (iterations: number, jets: Jet[]) => {
 
   while (i <= iterations) {
     while (rockFalling) {
+      renderState(currentState);
       applyGas(currentState, jets[j]);
       j = (j + 1) % jl;
       applyFall(currentState);
+      // console.log("j " + j);
       if (rockLanded(currentState)) {
+        console.log("rock landed " + r);
         rockFalling = false;
         chambers.push(cloneChamber(currentState.chamber));
         currentState = {
@@ -119,6 +166,9 @@ const processRocks = (iterations: number, jets: Jet[]) => {
         };
         r = (r + 1) % 5;
       }
+    }
+    if (i % 100 === 0) {
+      console.log(i);
     }
     i++;
   }
@@ -132,4 +182,4 @@ const parseJets = (lines: string[]): Jet[] => {
     .filter(notEmpty);
 };
 const b = () => void 0;
-export { parseJets, b };
+export { parseJets, processRocks };

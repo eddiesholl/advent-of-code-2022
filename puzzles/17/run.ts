@@ -1,5 +1,8 @@
 import { readLines } from "../common/input";
-import { a } from "./index";
+import { parseJets, processRocks } from "./index";
 
-const score = a(readLines(__dirname));
+const score = processRocks(
+  20, //2022,
+  parseJets(readLines(__dirname, "example.txt"))
+);
 console.log("Score is " + score);
