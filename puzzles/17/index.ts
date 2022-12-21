@@ -60,6 +60,40 @@ const createRock = (r: number, location: Location): Rock => {
       };
   }
 };
+function applyGas({ activeRock }: GameState, jet: Jet) {
+  if (jet === "<") {
+    if (activeRock.location.x > 0) {
+      activeRock.location.x -= 1;
+    }
+  } else if (jet === ">") {
+    if (activeRock.location.x + activeRock.width < chamberWidth) {
+      activeRock.location.x += 1;
+    }
+  }
+}
+
+function applyFall({ chamber, activeRock }: GameState) {
+  throw new Error("Function not implemented.");
+}
+
+function rockLanded(currentState: { chamber: Chamber; activeRock: Rock }) {
+  throw new Error("Function not implemented.");
+}
+
+function cloneChamber(chamber: Chamber): Chamber {
+  throw new Error("Function not implemented.");
+}
+
+function landRock(currentState: {
+  chamber: Chamber;
+  activeRock: Rock;
+}): Chamber {
+  throw new Error("Function not implemented.");
+}
+
+function highestRock(chamber: Chamber) {
+  throw new Error("Function not implemented.");
+}
 const processRocks = (iterations: number, jets: Jet[]) => {
   let i = 1;
   let r = 0;
