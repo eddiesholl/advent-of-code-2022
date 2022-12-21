@@ -30,7 +30,7 @@ const createRock = (r: number, location: Location): Rock => {
         shape: [new Set([0, 1, 2, 3])],
         location,
         width: 4,
-        falling: false,
+        falling: true,
       };
     case 1:
       return {
@@ -38,7 +38,7 @@ const createRock = (r: number, location: Location): Rock => {
         shape: [new Set([1]), new Set([0, 1, 2]), new Set([1])],
         location,
         width: 3,
-        falling: false,
+        falling: true,
       };
     case 2:
       return {
@@ -46,7 +46,7 @@ const createRock = (r: number, location: Location): Rock => {
         shape: [new Set([2]), new Set([2]), new Set([0, 1, 2])],
         location,
         width: 4,
-        falling: false,
+        falling: true,
       };
     case 3:
       return {
@@ -54,7 +54,7 @@ const createRock = (r: number, location: Location): Rock => {
         shape: [new Set([0]), new Set([0]), new Set([0]), new Set([0])],
         location,
         width: 1,
-        falling: false,
+        falling: true,
       };
     case 4:
       return {
@@ -70,6 +70,7 @@ const renderState = (state: GameState) => {
   let h = state.chamber.length + 5;
   let x = 0;
   let currentRow: Row;
+  console.log(state.chamber.length);
   console.log(state.activeRock);
   while (h >= 0) {
     currentRow = state.chamber[h];
@@ -94,17 +95,22 @@ const renderState = (state: GameState) => {
 };
 const applyGas = ({ activeRock }: GameState, jet: Jet) => {
   if (jet === "<") {
+    // console.log("applyGas <");
     if (activeRock.location.x > 0) {
+      // console.log("applyGas < effective");
       activeRock.location.x -= 1;
     }
   } else if (jet === ">") {
+    // console.log("applyGas >");
     if (activeRock.location.x + activeRock.width < chamberWidth) {
+      // console.log("applyGas > effective");
       activeRock.location.x += 1;
     }
   }
 };
 
 const applyFall = ({ chamber, activeRock }: GameState) => {
+  // console.log("applyFall y " + activeRock.location.y);
   if (activeRock.location.y === 0) {
     activeRock.falling = false;
     return;
@@ -119,21 +125,20 @@ const applyFall = ({ chamber, activeRock }: GameState) => {
   }
 };
 
-const rockLanded = ({ activeRock }: GameState) => {
-  return activeRock.falling;
-};
+const rockLanded = ({ activeRock }: GameState) => !activeRock.falling;
+const rockFalling = ({ activeRock }: GameState) => activeRock.falling;
 
 const cloneChamber = (chamber: Chamber): Chamber =>
   chamber.map((r) => new Set(r));
 
 const landRock = ({ chamber, activeRock }: GameState) => {
   const rowsToAdd = [...activeRock.shape].reverse();
-  const nextChamber = cloneChamber(chamber);
+  // const nextChamber = cloneChamber(chamber);
   rowsToAdd.forEach((row) => {
     const offsetedRow = Array.from(row).map((r) => r + activeRock.location.x);
-    nextChamber.push(new Set(offsetedRow));
+    chamber.push(new Set(offsetedRow));
   });
-  return nextChamber;
+  // return nextChamber;
 };
 
 const highestRock = (chamber: Chamber) => chamber.length;
@@ -147,24 +152,26 @@ const processRocks = (iterations: number, jets: Jet[]) => {
   let activeRock = createRock(r, { x: 2, y: 3 });
   let currentState = { chamber, activeRock };
   let chambers: Chamber[] = [];
-  let rockFalling = true;
 
   while (i <= iterations) {
-    while (rockFalling) {
-      renderState(currentState);
+    while (rockFalling(currentState)) {
       applyGas(currentState, jets[j]);
       j = (j + 1) % jl;
       applyFall(currentState);
       // console.log("j " + j);
       if (rockLanded(currentState)) {
         console.log("rock landed " + r);
-        rockFalling = false;
-        chambers.push(cloneChamber(currentState.chamber));
-        currentState = {
-          chamber: landRock(currentState),
-          activeRock: createRock(r, { x: 2, y: highestRock(chamber) + 3 }),
-        };
+        landRock(currentState);
+        chambers.push(currentState.chamber);
         r = (r + 1) % 5;
+        currentState = {
+          chamber: cloneChamber(currentState.chamber),
+          activeRock: createRock(r, {
+            x: 2,
+            y: highestRock(currentState.chamber) + 3,
+          }),
+        };
+        renderState(currentState);
       }
     }
     if (i % 100 === 0) {
