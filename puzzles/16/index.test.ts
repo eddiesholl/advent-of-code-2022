@@ -18,14 +18,14 @@ describe("16", () => {
       expect(recurse(valveMapAABB, [], 1, 3, 0)).toEqual({
         sequence: [
           {
-            op: { kind: "move", target: "BB" },
+            op: { kind: "open", target: "AA" },
             state: {
               location: "AA",
               rate: 0,
               released: 0,
               t: 1,
-              visited: ["AA"],
-              open: [],
+              visited: new Set(),
+              open: new Set(),
             },
           },
         ],
@@ -37,33 +37,23 @@ describe("16", () => {
       expect(terminalState.sequence.length).toEqual(5);
       // terminalState.sequence.map(renderMinute);
       expect(terminalState.sequence[4]).toEqual({
-        op: { kind: "move", target: "BB" },
+        op: { kind: "noop" },
         state: {
-          location: "AA",
-          open: ["AA", "BB"],
-          visited: ["BB", "AA"],
+          location: "BB",
+          open: new Set(["AA", "BB"]),
+          visited: new Set(["BB"]),
           t: 5,
           rate: 3,
           released: 5,
         },
       });
       expect(terminalState.released).toEqual(8);
-      // .toEqual({
-      //   ops: [
-      //     { kind: "open", target: "AA" },
-      //     { kind: "move", target: "BB" },
-      //     { kind: "open", target: "BB" },
-      //     { kind: "noop" },
-      //     { kind: "noop" },
-      //   ],
-      //   released: 11,
-      // });
     });
   });
   describe("findBestValvePath", () => {
     it("handles the example input", () => {
       expect(
-        findBestValvePath(parseLines(readLines(__dirname, "example.txt")))
+        findBestValvePath(parseLines(readLines(__dirname, "example.txt")), 30)
           .released
       ).toEqual(1651);
     });

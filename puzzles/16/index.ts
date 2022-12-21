@@ -9,8 +9,8 @@ type Valve = {
 type GameState = {
   t: number;
   location: string;
-  open: string[];
-  visited: string[];
+  open: Set<string>;
+  visited: Set<string>;
   rate: number;
   released: number;
 };
@@ -35,28 +35,46 @@ interface NoOp {
 }
 type ValveOp = MoveOp | OpenOp | NoOp;
 type ValveMap = Record<string, Valve>;
-const findBestValvePath = (valves: Valve[]): TerminalState => {
+const findBestValvePath = (valves: Valve[], endTime: number): TerminalState => {
   const valveMap: ValveMap = {};
   valves.forEach((valve) => (valveMap[valve.name] = valve));
   const maxFlowRate = valves.map((v) => v.rate).reduce(sumValues, 0);
-  return recurse(valveMap, [], 30, maxFlowRate, 0);
+  // return recurse(valveMap, [], 10, maxFlowRate, 0);
+  return recurse(valveMap, [], endTime, maxFlowRate, 0);
 };
 const nextStateFrom = (
   { op, state }: Minute,
   valveMap: ValveMap
 ): GameState => {
-  const newOpen =
-    op.kind === "open" ? state.open.concat(op.target) : state.open;
-  const newRate = newOpen.map((v) => valveMap[v].rate).reduce(sumValues, 0);
-  return {
-    t: state.t + 1,
-    location: op.kind === "move" ? op.target : state.location,
-    open: newOpen,
-    visited:
-      op.kind === "move" ? state.visited.concat(op.target) : state.visited,
-    rate: newRate,
-    released: state.released + state.rate,
-  };
+  if (op.kind === "open") {
+    const newOpen = new Set(state.open).add(op.target);
+    const newRate = Array.from(newOpen)
+      .map((v) => valveMap[v].rate)
+      .reduce(sumValues, 0);
+    return {
+      t: state.t + 1,
+      location: state.location,
+      open: newOpen,
+      visited: state.visited,
+      rate: newRate,
+      released: state.released + state.rate,
+    };
+  } else if (op.kind === "move") {
+    return {
+      t: state.t + 1,
+      location: op.target,
+      open: state.open,
+      visited: new Set(state.visited).add(op.target),
+      rate: state.rate,
+      released: state.released + state.rate,
+    };
+  } else {
+    return {
+      ...state,
+      t: state.t + 1,
+      released: state.released + state.rate,
+    };
+  }
 };
 const recurse = (
   valveMap: ValveMap,
@@ -71,8 +89,8 @@ const recurse = (
     currentState = {
       t: 1,
       location: "AA",
-      open: [],
-      visited: [],
+      open: new Set<string>(),
+      visited: new Set<string>(),
       rate: 0,
       released: 0,
     };
@@ -110,12 +128,17 @@ const recurse = (
     }
   }
   const currentValve = valveMap[currentState.location];
-  const possibleOps: ValveOp[] = currentValve.linked
-    // .filter((v) => !currentState.visited.includes(v))
-    .map((v) => ({ kind: "move", target: v }));
+  const canOpenCurrentLocation = !currentState.open.has(currentState.location);
+  const allValvesOpen = currentState.open.size === Object.keys(valveMap).length;
+  const possibleOps: ValveOp[] = canOpenCurrentLocation
+    ? [{ kind: "open", target: currentState.location }]
+    : [];
 
-  if (!currentState.open.includes(currentState.location)) {
-    possibleOps.push({ kind: "open", target: currentState.location });
+  if (!allValvesOpen) {
+    const possibleMoves: ValveOp[] = currentValve.linked
+      // .filter((v) => !currentState.visited.includes(v))
+      .map((v) => ({ kind: "move", target: v }));
+    possibleOps.push(...possibleMoves);
   }
 
   if (possibleOps.length === 0) {
@@ -181,9 +204,9 @@ const recurse = (
   // }
   const m = minutes.length;
   possibleOps.forEach((op, ix) => {
-    // if (m < 4) {
-    //   console.log(`m = ${m}, ix = ${ix}`);
-    // }
+    if (m < 4) {
+      // console.log(`m = ${m}, ix = ${ix}`);
+    }
     const outcome = recurse(
       valveMap,
       minutes.concat({ state: currentState, op }),
@@ -240,11 +263,11 @@ You move to valve FF.
 */
 const renderMinute = ({ op, state }: Minute) => {
   console.log(`== Minute ${state.t} ==`);
-  if (state.open.length === 0) {
+  if (state.open.size === 0) {
     console.log("No valves are open");
   } else {
     console.log(
-      `Valves ${state.open.sort().join(", ")} are open, releasing ${
+      `Valves ${Array.from(state.open).sort().join(", ")} are open, releasing ${
         state.rate
       } pressure`
     );
