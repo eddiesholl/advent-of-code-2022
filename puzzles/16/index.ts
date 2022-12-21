@@ -1,4 +1,4 @@
-import { notEmpty } from "../common/array";
+import { arraysEqual, arraysEqualOrdered, notEmpty } from "../common/array";
 import { sumValues } from "../common/math";
 
 type Valve = {
@@ -38,7 +38,8 @@ type ValveMap = Record<string, Valve>;
 const findBestValvePath = (valves: Valve[]): TerminalState => {
   const valveMap: ValveMap = {};
   valves.forEach((valve) => (valveMap[valve.name] = valve));
-  return recurse(valveMap, [], 30);
+  const maxFlowRate = valves.map((v) => v.rate).reduce(sumValues, 0);
+  return recurse(valveMap, [], 30, maxFlowRate, 0);
 };
 const nextStateFrom = (
   { op, state }: Minute,
@@ -60,7 +61,10 @@ const nextStateFrom = (
 const recurse = (
   valveMap: ValveMap,
   minutes: Minute[],
-  endTime: number
+  endTime: number,
+  maxFlowRate: number,
+  bestTotalSoFar: number,
+  debug: boolean = false
 ): TerminalState => {
   let currentState: GameState;
   if (minutes.length === 0) {
@@ -68,24 +72,46 @@ const recurse = (
       t: 1,
       location: "AA",
       open: [],
-      visited: ["AA"],
+      visited: [],
       rate: 0,
       released: 0,
     };
   } else {
     const prevMinute = minutes.slice(-1)[0];
     currentState = nextStateFrom(prevMinute, valveMap);
-    if (currentState.t > endTime) {
-      // console.log(prevMinute.state.released + prevMinute.state.rate);
+    const minutesLeft = endTime - currentState.t;
+    const prevReleased = prevMinute.state.released; // + prevMinute.state.rate;
+    const totalReleased = prevMinute.state.released + prevMinute.state.rate;
+    const bestPossibleTotal = totalReleased + (minutesLeft + 1) * maxFlowRate;
+    if (minutesLeft < 0) {
+      // console.log(prevMinute.state.visited);
+      // console.log(prevMinute.state.open);
+      // if (debug) {
+      //   console.log(`${totalReleased} by minute ${currentState.t}`);
+      // }
       return {
         sequence: minutes,
-        released: prevMinute.state.released + prevMinute.state.rate,
+        released: totalReleased,
+      };
+    }
+    if (bestPossibleTotal < bestTotalSoFar) {
+      // console.log(prevMinute.state.visited);
+      // console.log(prevMinute.state.open);
+      // if (debug) {
+      //   console.log(
+      //     `bailing with ${totalReleased} at minute ${currentState.t}`
+      //   );
+      //   console.log(`${bestPossibleTotal} < ${bestTotalSoFar}`);
+      // }
+      return {
+        sequence: minutes,
+        released: totalReleased,
       };
     }
   }
   const currentValve = valveMap[currentState.location];
   const possibleOps: ValveOp[] = currentValve.linked
-    .filter((v) => !currentState.visited.includes(v))
+    // .filter((v) => !currentState.visited.includes(v))
     .map((v) => ({ kind: "move", target: v }));
 
   if (!currentState.open.includes(currentState.location)) {
@@ -95,11 +121,117 @@ const recurse = (
   if (possibleOps.length === 0) {
     possibleOps.push({ kind: "noop" });
   }
-  const possibleOutcomes = possibleOps.map((op) =>
-    recurse(valveMap, minutes.concat({ state: currentState, op }), endTime)
-  );
+  const allOutcomes: TerminalState[] = [];
+  let newBestTotalSoFar = bestTotalSoFar;
+  // const minute13 =
+  //   currentState.t === 13 &&
+  //   arraysEqual(currentState.open, ["BB", "DD", "JJ"]) &&
+  //   arraysEqualOrdered(currentState.visited, [
+  //     "DD",
+  //     "CC",
+  //     "BB",
+  //     "AA",
+  //     "II",
+  //     "JJ",
+  //     "II",
+  //     "AA",
+  //     "DD",
+  //   ]);
+  // const minute21 =
+  //   currentState.t === 21 &&
+  //   arraysEqual(currentState.open, ["BB", "DD", "HH", "JJ"]) &&
+  //   arraysEqualOrdered(currentState.visited, [
+  //     "DD",
+  //     "CC",
+  //     "BB",
+  //     "AA",
+  //     "II",
+  //     "JJ",
+  //     "II",
+  //     "AA",
+  //     "DD",
+  //     "EE",
+  //     "FF",
+  //     "GG",
+  //     "HH",
+  //     "GG",
+  //     "FF",
+  //     "EE",
+  //   ]);
+  // if (minute13) {
+  //   // console.log("minute13");
+  //   // console.log(possibleOps);
+  //   // console.log(currentState.open);
+  //   // console.log(currentState.rate);
+  // }
+  // if (minute21) {
+  //   // console.log("minute21");
+  //   // console.log(possibleOps);
+  //   // console.log(currentState.open);
+  //   // console.log(currentState.rate);
+  // }
+  // let finalHurdle = false;
+  // if (debug && currentState.t === 21) {
+  //   const lastOp = minutes.slice(-1)[0].op;
+  //   if (lastOp.kind === "move" && lastOp.target === "EE") {
+  //     finalHurdle = true;
+  //     // console.log(`t = ${currentState.t}`);
+  //     // console.log(possibleOps);
+  //   }
+  // }
+  const m = minutes.length;
+  possibleOps.forEach((op, ix) => {
+    // if (m < 4) {
+    //   console.log(`m = ${m}, ix = ${ix}`);
+    // }
+    const outcome = recurse(
+      valveMap,
+      minutes.concat({ state: currentState, op }),
+      endTime,
+      maxFlowRate,
+      newBestTotalSoFar
+      // debug || minute21
+    );
+    // if (minute13) {
+    // console.log("from 13");
+    // console.log(outcome.released);
+    // console.log(
+    //   JSON.stringify(
+    //     outcome.sequence.map((m) => ({ t: m.state.t, op: m.op }))
+    //   )
+    // );
+    // }
+    // if (minute21) {
+    // console.log("from 21");
+    // console.log(outcome.released);
+    // console.log(
+    //   JSON.stringify(
+    //     outcome.sequence.map((m) => ({ t: m.state.t, op: m.op }))
+    //   )
+    // );
+    // }
+    // if (finalHurdle) {
+    //   console.log("from 21");
+    //   console.log(outcome.released);
+    //   console.log(
+    //     JSON.stringify(
+    //       outcome.sequence.map((m) => ({ t: m.state.t, op: m.op }))
+    //     )
+    //   );
+    // }
+
+    allOutcomes.push(outcome);
+    newBestTotalSoFar = Math.max(newBestTotalSoFar, outcome.released);
+  });
   // console.log(`t = ${minutes.length}, possible = ${possibleOutcomes.length}`);
-  return possibleOutcomes.sort((a, b) => b.released - a.released)[0];
+  allOutcomes.sort((a, b) => b.released - a.released);
+  const best = allOutcomes[0];
+  // if (best.released > 1500) {
+  //   console.log(debug);
+  //   console.log(allOutcomes.map((o) => o.released));
+  //   console.log(allOutcomes.map((o) => o.sequence.slice(-1)[0].op));
+  // }
+  return best;
 };
 /*
 == Minute 14 ==
@@ -112,7 +244,7 @@ const renderMinute = ({ op, state }: Minute) => {
     console.log("No valves are open");
   } else {
     console.log(
-      `Valves ${state.open.join(", ")} are open, releasing ${
+      `Valves ${state.open.sort().join(", ")} are open, releasing ${
         state.rate
       } pressure`
     );

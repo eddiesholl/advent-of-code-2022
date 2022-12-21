@@ -1,9 +1,75 @@
 import { readLines } from "../common/input";
-import { parseLines } from "./index";
+import {
+  findBestValvePath,
+  GameState,
+  parseLines,
+  recurse,
+  renderMinute,
+} from "./index";
 
 describe("16", () => {
+  describe("recurse", () => {
+    const valveMapAABB = {
+      AA: { name: "AA", rate: 1, linked: ["BB"] },
+      BB: { name: "BB", rate: 2, linked: ["AA"] },
+    };
+
+    it("bails when time is up", () => {
+      expect(recurse(valveMapAABB, [], 1, 3, 0)).toEqual({
+        sequence: [
+          {
+            op: { kind: "move", target: "BB" },
+            state: {
+              location: "AA",
+              rate: 0,
+              released: 0,
+              t: 1,
+              visited: ["AA"],
+              open: [],
+            },
+          },
+        ],
+        released: 0,
+      });
+    });
+    it("opens AA and BB", () => {
+      const terminalState = recurse(valveMapAABB, [], 5, 3, 0);
+      expect(terminalState.sequence.length).toEqual(5);
+      // terminalState.sequence.map(renderMinute);
+      expect(terminalState.sequence[4]).toEqual({
+        op: { kind: "move", target: "BB" },
+        state: {
+          location: "AA",
+          open: ["AA", "BB"],
+          visited: ["BB", "AA"],
+          t: 5,
+          rate: 3,
+          released: 5,
+        },
+      });
+      expect(terminalState.released).toEqual(8);
+      // .toEqual({
+      //   ops: [
+      //     { kind: "open", target: "AA" },
+      //     { kind: "move", target: "BB" },
+      //     { kind: "open", target: "BB" },
+      //     { kind: "noop" },
+      //     { kind: "noop" },
+      //   ],
+      //   released: 11,
+      // });
+    });
+  });
+  describe("findBestValvePath", () => {
+    it("handles the example input", () => {
+      expect(
+        findBestValvePath(parseLines(readLines(__dirname, "example.txt")))
+          .released
+      ).toEqual(1651);
+    });
+  });
   describe("parseLines", () => {
-    it("handles emoty lines", () => {
+    it("handles the example input", () => {
       expect(parseLines(readLines(__dirname, "example.txt"))).toEqual([
         { name: "AA", rate: 0, linked: ["DD", "II", "BB"] },
         { name: "BB", rate: 13, linked: ["CC", "AA"] },
