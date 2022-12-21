@@ -43,50 +43,13 @@ const describeSequence = (minutes: Omit<Minute, "state">[]): string =>
     .map((m) => (m.op.kind === "noop" ? "noop" : `${m.op.kind}-${m.op.target}`))
     .join("-");
 
-const exampleWinningOps: ValveOp[] = [
-  { kind: "move", target: "DD" },
-  { kind: "open", target: "DD" },
-  { kind: "move", target: "CC" },
-  { kind: "move", target: "BB" },
-  { kind: "open", target: "BB" },
-  { kind: "move", target: "AA" },
-  { kind: "move", target: "II" },
-  { kind: "move", target: "JJ" },
-  { kind: "open", target: "JJ" },
-  { kind: "move", target: "II" },
-  { kind: "move", target: "AA" },
-  { kind: "move", target: "DD" },
-  { kind: "move", target: "EE" },
-  { kind: "move", target: "FF" },
-  { kind: "move", target: "GG" },
-  { kind: "move", target: "HH" },
-  { kind: "open", target: "HH" },
-  { kind: "move", target: "GG" },
-  { kind: "move", target: "FF" },
-  { kind: "move", target: "EE" },
-  { kind: "open", target: "EE" },
-  { kind: "move", target: "DD" },
-  { kind: "move", target: "CC" },
-  { kind: "open", target: "CC" },
-  { kind: "noop" },
-  { kind: "noop" },
-  { kind: "noop" },
-  { kind: "noop" },
-  { kind: "noop" },
-  { kind: "noop" },
-];
-const exampleWinningDescription = describeSequence(
-  exampleWinningOps.map((op) => ({
-    op,
-  }))
-);
 const findBestValvePath = (valves: Valve[], endTime: number): TerminalState => {
   const valveMap: ValveMap = {};
   valves.forEach((valve) => (valveMap[valve.name] = valve));
+
   const maxFlowRate = valves.map((v) => v.rate).reduce(sumValues, 0);
-  // return recurse(valveMap, [], 10, maxFlowRate, 0);
-  const visitBag: VisitBag = {};
-  return recurse(valveMap, [], endTime, maxFlowRate, 0, visitBag);
+
+  return recurse(valveMap, [], endTime, maxFlowRate, 0, {});
 };
 const nextStateFrom = (
   { op, state }: Minute,
@@ -154,12 +117,7 @@ const recurse = (
   debug: boolean = false
 ): TerminalState => {
   let currentState: GameState;
-  // const minutesDesc = describeSequence(minutes);
-  // // let onTrack = false;
-  // // if (exampleWinningDescription.startsWith(minutesDesc)) {
-  // //   console.log("on track with " + minutesDesc);
-  // //   onTrack = true;
-  // // }
+
   if (minutes.length === 0) {
     currentState = {
       t: 1,
@@ -180,11 +138,6 @@ const recurse = (
     const minutesLeft = endTime - currentState.t;
     const totalReleased = currentState.released;
     if (minutesLeft < 0) {
-      // console.log(prevMinute.state.visited);
-      // console.log(prevMinute.state.open);
-      // if (debug) {
-      //   console.log(`${totalReleased} by minute ${currentState.t}`);
-      // }
       return {
         sequence: minutes,
         released: totalReleased,
@@ -197,11 +150,6 @@ const recurse = (
       visitBagMatch.rate > currentState.rate &&
       visitBagMatch.released > currentState.released
     ) {
-      // if (onTrack) {
-      //   console.log(
-      //     `Bailing on ${visitBagId}, ${visitBagMatch} > ${totalReleased}`
-      //   );
-      // }
       return {
         sequence: minutes,
         released: totalReleased,
@@ -214,14 +162,6 @@ const recurse = (
     }
     const bestPossibleTotal = totalReleased + (minutesLeft + 1) * maxFlowRate;
     if (bestPossibleTotal < bestTotalSoFar) {
-      // console.log(prevMinute.state.visited);
-      // console.log(prevMinute.state.open);
-      // if (debug) {
-      //   console.log(
-      //     `bailing with ${totalReleased} at minute ${currentState.t}`
-      //   );
-      //   console.log(`${bestPossibleTotal} < ${bestTotalSoFar}`);
-      // }
       return {
         sequence: minutes,
         released: totalReleased,
@@ -236,9 +176,10 @@ const recurse = (
     : [];
 
   if (!allValvesOpen) {
-    const possibleMoves: ValveOp[] = currentValve.linked
-      // .filter((v) => !currentState.visited.includes(v))
-      .map((v) => ({ kind: "move", target: v }));
+    const possibleMoves: ValveOp[] = currentValve.linked.map((v) => ({
+      kind: "move",
+      target: v,
+    }));
     possibleOps.push(...possibleMoves);
   }
 
@@ -248,67 +189,8 @@ const recurse = (
   }
   const allOutcomes: TerminalState[] = [];
   let newBestTotalSoFar = bestTotalSoFar;
-  // const minute13 =
-  //   currentState.t === 13 &&
-  //   arraysEqual(currentState.open, ["BB", "DD", "JJ"]) &&
-  //   arraysEqualOrdered(currentState.visited, [
-  //     "DD",
-  //     "CC",
-  //     "BB",
-  //     "AA",
-  //     "II",
-  //     "JJ",
-  //     "II",
-  //     "AA",
-  //     "DD",
-  //   ]);
-  // const minute21 =
-  //   currentState.t === 21 &&
-  //   arraysEqual(currentState.open, ["BB", "DD", "HH", "JJ"]) &&
-  //   arraysEqualOrdered(currentState.visited, [
-  //     "DD",
-  //     "CC",
-  //     "BB",
-  //     "AA",
-  //     "II",
-  //     "JJ",
-  //     "II",
-  //     "AA",
-  //     "DD",
-  //     "EE",
-  //     "FF",
-  //     "GG",
-  //     "HH",
-  //     "GG",
-  //     "FF",
-  //     "EE",
-  //   ]);
-  // if (minute13) {
-  //   // console.log("minute13");
-  //   // console.log(possibleOps);
-  //   // console.log(currentState.open);
-  //   // console.log(currentState.rate);
-  // }
-  // if (minute21) {
-  //   // console.log("minute21");
-  //   // console.log(possibleOps);
-  //   // console.log(currentState.open);
-  //   // console.log(currentState.rate);
-  // }
-  // let finalHurdle = false;
-  // if (debug && currentState.t === 21) {
-  //   const lastOp = minutes.slice(-1)[0].op;
-  //   if (lastOp.kind === "move" && lastOp.target === "EE") {
-  //     finalHurdle = true;
-  //     // console.log(`t = ${currentState.t}`);
-  //     // console.log(possibleOps);
-  //   }
-  // }
-  const m = minutes.length;
+
   possibleOps.forEach((op, ix) => {
-    if (m < 4) {
-      // console.log(`m = ${m}, ix = ${ix}`);
-    }
     const outcome = recurse(
       valveMap,
       minutes.concat({ state: currentState, op }),
@@ -316,47 +198,14 @@ const recurse = (
       maxFlowRate,
       newBestTotalSoFar,
       visitBag
-      // debug || minute21
     );
-    // if (minute13) {
-    // console.log("from 13");
-    // console.log(outcome.released);
-    // console.log(
-    //   JSON.stringify(
-    //     outcome.sequence.map((m) => ({ t: m.state.t, op: m.op }))
-    //   )
-    // );
-    // }
-    // if (minute21) {
-    // console.log("from 21");
-    // console.log(outcome.released);
-    // console.log(
-    //   JSON.stringify(
-    //     outcome.sequence.map((m) => ({ t: m.state.t, op: m.op }))
-    //   )
-    // );
-    // }
-    // if (finalHurdle) {
-    //   console.log("from 21");
-    //   console.log(outcome.released);
-    //   console.log(
-    //     JSON.stringify(
-    //       outcome.sequence.map((m) => ({ t: m.state.t, op: m.op }))
-    //     )
-    //   );
-    // }
 
     allOutcomes.push(outcome);
     newBestTotalSoFar = Math.max(newBestTotalSoFar, outcome.released);
   });
-  // console.log(`t = ${minutes.length}, possible = ${possibleOutcomes.length}`);
   allOutcomes.sort((a, b) => b.released - a.released);
   const best = allOutcomes[0];
-  // if (best.released > 1500) {
-  //   console.log(debug);
-  //   console.log(allOutcomes.map((o) => o.released));
-  //   console.log(allOutcomes.map((o) => o.sequence.slice(-1)[0].op));
-  // }
+
   return best;
 };
 /*
