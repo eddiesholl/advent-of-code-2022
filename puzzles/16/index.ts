@@ -154,12 +154,12 @@ const recurse = (
   debug: boolean = false
 ): TerminalState => {
   let currentState: GameState;
-  const minutesDesc = describeSequence(minutes);
-  let onTrack = false;
-  if (exampleWinningDescription.startsWith(minutesDesc)) {
-    console.log("on track with " + minutesDesc);
-    onTrack = true;
-  }
+  // const minutesDesc = describeSequence(minutes);
+  // // let onTrack = false;
+  // // if (exampleWinningDescription.startsWith(minutesDesc)) {
+  // //   console.log("on track with " + minutesDesc);
+  // //   onTrack = true;
+  // // }
   if (minutes.length === 0) {
     currentState = {
       t: 1,
