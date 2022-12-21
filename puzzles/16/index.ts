@@ -13,6 +13,7 @@ type GameState = {
   visited: Set<string>;
   rate: number;
   released: number;
+  usefulClosedValves: Set<string>;
 };
 type Minute = {
   op: ValveOp;
@@ -35,12 +36,57 @@ interface NoOp {
 }
 type ValveOp = MoveOp | OpenOp | NoOp;
 type ValveMap = Record<string, Valve>;
+type VolumeNumbers = { released: number; rate: number };
+type VisitBag = Record<string, VolumeNumbers>;
+const describeSequence = (minutes: Omit<Minute, "state">[]): string =>
+  minutes
+    .map((m) => (m.op.kind === "noop" ? "noop" : `${m.op.kind}-${m.op.target}`))
+    .join("-");
+
+const exampleWinningOps: ValveOp[] = [
+  { kind: "move", target: "DD" },
+  { kind: "open", target: "DD" },
+  { kind: "move", target: "CC" },
+  { kind: "move", target: "BB" },
+  { kind: "open", target: "BB" },
+  { kind: "move", target: "AA" },
+  { kind: "move", target: "II" },
+  { kind: "move", target: "JJ" },
+  { kind: "open", target: "JJ" },
+  { kind: "move", target: "II" },
+  { kind: "move", target: "AA" },
+  { kind: "move", target: "DD" },
+  { kind: "move", target: "EE" },
+  { kind: "move", target: "FF" },
+  { kind: "move", target: "GG" },
+  { kind: "move", target: "HH" },
+  { kind: "open", target: "HH" },
+  { kind: "move", target: "GG" },
+  { kind: "move", target: "FF" },
+  { kind: "move", target: "EE" },
+  { kind: "open", target: "EE" },
+  { kind: "move", target: "DD" },
+  { kind: "move", target: "CC" },
+  { kind: "open", target: "CC" },
+  { kind: "noop" },
+  { kind: "noop" },
+  { kind: "noop" },
+  { kind: "noop" },
+  { kind: "noop" },
+  { kind: "noop" },
+];
+const exampleWinningDescription = describeSequence(
+  exampleWinningOps.map((op) => ({
+    op,
+  }))
+);
 const findBestValvePath = (valves: Valve[], endTime: number): TerminalState => {
   const valveMap: ValveMap = {};
   valves.forEach((valve) => (valveMap[valve.name] = valve));
   const maxFlowRate = valves.map((v) => v.rate).reduce(sumValues, 0);
   // return recurse(valveMap, [], 10, maxFlowRate, 0);
-  return recurse(valveMap, [], endTime, maxFlowRate, 0);
+  const visitBag: VisitBag = {};
+  return recurse(valveMap, [], endTime, maxFlowRate, 0, visitBag);
 };
 const nextStateFrom = (
   { op, state }: Minute,
@@ -51,6 +97,8 @@ const nextStateFrom = (
     const newRate = Array.from(newOpen)
       .map((v) => valveMap[v].rate)
       .reduce(sumValues, 0);
+    const newUseful = new Set(state.usefulClosedValves);
+    newUseful.delete(op.target);
     return {
       t: state.t + 1,
       location: state.location,
@@ -58,6 +106,7 @@ const nextStateFrom = (
       visited: state.visited,
       rate: newRate,
       released: state.released + state.rate,
+      usefulClosedValves: newUseful,
     };
   } else if (op.kind === "move") {
     return {
@@ -67,6 +116,7 @@ const nextStateFrom = (
       visited: new Set(state.visited).add(op.target),
       rate: state.rate,
       released: state.released + state.rate,
+      usefulClosedValves: state.usefulClosedValves,
     };
   } else {
     return {
@@ -76,15 +126,40 @@ const nextStateFrom = (
     };
   }
 };
+const fillNoops = (minutes: Minute[], endTime: number): TerminalState => {
+  const { op: prevOp, state: prevState } = minutes.slice(-1)[0];
+  let t = prevState.t;
+  const sequence = [...minutes];
+  let lastReleased: number = 0;
+  while (t <= endTime) {
+    t++;
+    const released = prevState.released + prevState.rate;
+    const state = {
+      ...prevState,
+      t,
+      released,
+    };
+    lastReleased = released;
+    sequence.push({ op: { kind: "noop" }, state });
+  }
+  return { sequence, released: lastReleased };
+};
 const recurse = (
   valveMap: ValveMap,
   minutes: Minute[],
   endTime: number,
   maxFlowRate: number,
   bestTotalSoFar: number,
+  visitBag: VisitBag,
   debug: boolean = false
 ): TerminalState => {
   let currentState: GameState;
+  const minutesDesc = describeSequence(minutes);
+  let onTrack = false;
+  if (exampleWinningDescription.startsWith(minutesDesc)) {
+    console.log("on track with " + minutesDesc);
+    onTrack = true;
+  }
   if (minutes.length === 0) {
     currentState = {
       t: 1,
@@ -93,14 +168,17 @@ const recurse = (
       visited: new Set<string>(),
       rate: 0,
       released: 0,
+      usefulClosedValves: new Set(
+        Object.values(valveMap)
+          .filter((v) => v.rate > 0)
+          .map((v) => v.name)
+      ),
     };
   } else {
     const prevMinute = minutes.slice(-1)[0];
     currentState = nextStateFrom(prevMinute, valveMap);
     const minutesLeft = endTime - currentState.t;
-    const prevReleased = prevMinute.state.released; // + prevMinute.state.rate;
-    const totalReleased = prevMinute.state.released + prevMinute.state.rate;
-    const bestPossibleTotal = totalReleased + (minutesLeft + 1) * maxFlowRate;
+    const totalReleased = currentState.released;
     if (minutesLeft < 0) {
       // console.log(prevMinute.state.visited);
       // console.log(prevMinute.state.open);
@@ -112,6 +190,29 @@ const recurse = (
         released: totalReleased,
       };
     }
+    const visitBagId = `${currentState.t}-${currentState.location}`;
+    const visitBagMatch = visitBag[visitBagId];
+    if (
+      visitBagMatch &&
+      visitBagMatch.rate > currentState.rate &&
+      visitBagMatch.released > currentState.released
+    ) {
+      // if (onTrack) {
+      //   console.log(
+      //     `Bailing on ${visitBagId}, ${visitBagMatch} > ${totalReleased}`
+      //   );
+      // }
+      return {
+        sequence: minutes,
+        released: totalReleased,
+      };
+    } else {
+      visitBag[visitBagId] = {
+        released: currentState.released,
+        rate: currentState.rate,
+      };
+    }
+    const bestPossibleTotal = totalReleased + (minutesLeft + 1) * maxFlowRate;
     if (bestPossibleTotal < bestTotalSoFar) {
       // console.log(prevMinute.state.visited);
       // console.log(prevMinute.state.open);
@@ -129,7 +230,7 @@ const recurse = (
   }
   const currentValve = valveMap[currentState.location];
   const canOpenCurrentLocation = !currentState.open.has(currentState.location);
-  const allValvesOpen = currentState.open.size === Object.keys(valveMap).length;
+  const allValvesOpen = currentState.usefulClosedValves.size === 0;
   const possibleOps: ValveOp[] = canOpenCurrentLocation
     ? [{ kind: "open", target: currentState.location }]
     : [];
@@ -142,6 +243,7 @@ const recurse = (
   }
 
   if (possibleOps.length === 0) {
+    // return fillNoops(minutes, endTime);
     possibleOps.push({ kind: "noop" });
   }
   const allOutcomes: TerminalState[] = [];
@@ -212,7 +314,8 @@ const recurse = (
       minutes.concat({ state: currentState, op }),
       endTime,
       maxFlowRate,
-      newBestTotalSoFar
+      newBestTotalSoFar,
+      visitBag
       // debug || minute21
     );
     // if (minute13) {
@@ -277,6 +380,7 @@ const renderMinute = ({ op, state }: Minute) => {
   } else if (op.kind === "move") {
     console.log(`You move to valve ${op.target}`);
   }
+  console.log(state.released);
   console.log("");
 };
 const parseLines = (lines: string[]): Valve[] =>
@@ -294,4 +398,5 @@ const parseLines = (lines: string[]): Valve[] =>
       }
     })
     .filter(notEmpty);
+
 export { parseLines, findBestValvePath, recurse, GameState, renderMinute };

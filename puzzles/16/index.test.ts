@@ -15,7 +15,7 @@ describe("16", () => {
     };
 
     it("bails when time is up", () => {
-      expect(recurse(valveMapAABB, [], 1, 3, 0)).toEqual({
+      expect(recurse(valveMapAABB, [], 1, 3, 0, {})).toEqual({
         sequence: [
           {
             op: { kind: "open", target: "AA" },
@@ -26,6 +26,7 @@ describe("16", () => {
               t: 1,
               visited: new Set(),
               open: new Set(),
+              usefulClosedValves: new Set(["AA", "BB"]),
             },
           },
         ],
@@ -33,7 +34,7 @@ describe("16", () => {
       });
     });
     it("opens AA and BB", () => {
-      const terminalState = recurse(valveMapAABB, [], 5, 3, 0);
+      const terminalState = recurse(valveMapAABB, [], 5, 3, 0, {});
       expect(terminalState.sequence.length).toEqual(5);
       // terminalState.sequence.map(renderMinute);
       expect(terminalState.sequence[4]).toEqual({
@@ -45,6 +46,7 @@ describe("16", () => {
           t: 5,
           rate: 3,
           released: 5,
+          usefulClosedValves: new Set(),
         },
       });
       expect(terminalState.released).toEqual(8);
