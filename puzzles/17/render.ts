@@ -4,8 +4,8 @@ const renderState = (state: GameState) => {
   let h = state.chamber.length + 5;
   let x = 0;
   let currentRow: Row;
-  console.log(state.chamber.length);
-  console.log(state.activeRock);
+  // console.log(state.chamber.length);
+  // console.log(state.activeRock);
   while (h >= 0) {
     currentRow = state.chamber[h];
     let rowString = (h % 10).toString();
@@ -25,7 +25,7 @@ const renderState = (state: GameState) => {
     console.log(rowString);
     h--;
   }
-  console.log("---------");
+  console.log("-0123456-");
   console.log("");
 };
 

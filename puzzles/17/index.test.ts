@@ -1,4 +1,4 @@
-import { applyGas, createRock, GameState, parseJets } from "./index";
+import { applyFall, applyGas, createRock, GameState, parseJets } from "./index";
 
 describe("17", () => {
   describe("parseJets", () => {
@@ -61,6 +61,25 @@ describe("17", () => {
       gameState.activeRock.location.x += 2;
       applyGas(gameState, "<");
       expect(gameState.activeRock.location.x).toEqual(3);
+    });
+  });
+  describe("applyFall", () => {
+    /*      @
+    4|      @
+    3|    @@@
+    2|  #
+    1| ###
+    0|  #
+     --------
+      0123456
+     */
+    it("allows an overlapping fall", () => {
+      const gameState: GameState = {
+        chamber: [new Set([2]), new Set([1, 2, 3]), new Set([2])],
+        activeRock: createRock(2, { x: 4, y: 3 }), // ]
+      };
+      applyFall(gameState);
+      expect(gameState.activeRock.location.y).toEqual(2);
     });
   });
 });

@@ -119,9 +119,6 @@ const applyGas = ({ activeRock, chamber }: GameState, jet: Jet) => {
 };
 
 const rockCanMoveDown = ({ activeRock, chamber }: GameState): boolean => {
-  if (activeRock.location.x + activeRock.width >= chamberWidth) {
-    return false;
-  }
   const rowsFree = activeRock.shape.map((rockRow, rockShapeIndex) => {
     const chamberRowNumber =
       activeRock.location.y + (activeRock.height - 1 - rockShapeIndex);
@@ -191,9 +188,7 @@ const processRocks = (iterations: number, jets: Jet[]) => {
       applyGas(currentState, jets[j]);
       j = (j + 1) % jl;
       applyFall(currentState);
-      renderState(currentState);
       if (rockLanded(currentState)) {
-        console.log("rock landed " + r);
         landRock(currentState);
         r = (r + 1) % 5;
         currentState = {
@@ -203,6 +198,8 @@ const processRocks = (iterations: number, jets: Jet[]) => {
             y: highestRock(currentState.chamber) + 4,
           }),
         };
+        // console.log(i);
+        // renderState(currentState);
         break;
       }
     }
@@ -225,6 +222,7 @@ export {
   parseJets,
   processRocks,
   applyGas,
+  applyFall,
   GameState,
   chamberWidth,
   Row,
