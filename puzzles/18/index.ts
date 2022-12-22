@@ -8,9 +8,8 @@ type Point = {
 };
 const makeId = (p: Point): string => `${p.x}-${p.y}-${p.z}`;
 const countFaces = (points: Point[]): number => {
-  console.log;
   const ids = new Set(points.map(makeId));
-  const faceCount = points
+  return points
     .map((p) => {
       const neighbors = [
         { ...p, x: p.x - 1 },
@@ -23,10 +22,9 @@ const countFaces = (points: Point[]): number => {
       return neighbors.filter((n) => !ids.has(n)).length;
     })
     .reduce(sumValues, 0);
-  return faceCount;
 };
-const parseLines = (lines: string[]): Point[] => {
-  return lines
+const parseLines = (lines: string[]): Point[] =>
+  lines
     .map((line) => {
       const match = line.match(/(\d+),(\d+),(\d+)/);
       if (match) {
@@ -38,6 +36,6 @@ const parseLines = (lines: string[]): Point[] => {
       }
     })
     .filter(notEmpty);
-};
+
 const b = () => void 0;
 export { parseLines, countFaces };
