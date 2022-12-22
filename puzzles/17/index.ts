@@ -67,7 +67,7 @@ const createRock = (r: number, location: Location): Rock => {
         location,
         width: 2,
         height: 2,
-        falling: false,
+        falling: true,
       };
   }
 };
@@ -96,8 +96,8 @@ const rockCanMoveRight = ({ activeRock, chamber }: GameState): boolean => {
     const chamberRowNumber =
       activeRock.location.y + (activeRock.height - 1 - rockShapeIndex);
     const chamberRow = chamber[chamberRowNumber];
-    console.log(rockRow);
-    console.log(chamberRow);
+    // console.log(rockRow);
+    // console.log(chamberRow);
     if (!chamberRow) {
       return true;
     }
@@ -110,46 +110,74 @@ const rockCanMoveRight = ({ activeRock, chamber }: GameState): boolean => {
 
 const applyGas = ({ activeRock, chamber }: GameState, jet: Jet) => {
   if (jet === "<") {
-    // console.log("applyGas <");
+    console.log("applyGas <");
     if (rockCanMoveLeft({ activeRock, chamber })) {
-      console.log("applyGas < effective");
+      // console.log("applyGas < effective");
       activeRock.location.x -= 1;
     }
   } else if (jet === ">") {
-    // console.log("applyGas >");
+    console.log("applyGas >");
     if (rockCanMoveRight({ activeRock, chamber })) {
       // if (activeRock.location.x + activeRock.width < chamberWidth) {
-      console.log("applyGas > effective");
+      // console.log("applyGas > effective");
       activeRock.location.x += 1;
     }
   }
 };
 
+const rockCanMoveDown = ({ activeRock, chamber }: GameState): boolean => {
+  if (activeRock.location.x + activeRock.width >= chamberWidth) {
+    return false;
+  }
+  const rowsFree = activeRock.shape.map((rockRow, rockShapeIndex) => {
+    const chamberRowNumber =
+      activeRock.location.y + (activeRock.height - 1 - rockShapeIndex);
+    const chamberRowBelow = chamber[chamberRowNumber - 1]; // -1 to grab row below
+    // console.log("rockRow");
+    // console.log(rockRow);
+    // console.log("chamberRowBelow");
+    // console.log(chamberRowBelow);
+    if (!chamberRowBelow) {
+      return true;
+    }
+    return Array.from(rockRow).every(
+      (rx) => !chamberRowBelow.has(rx + activeRock.location.x)
+    );
+  });
+  console.log(rowsFree);
+  return rowsFree.every(Boolean);
+};
+
 const applyFall = ({ chamber, activeRock }: GameState) => {
-  // console.log("applyFall y " + activeRock.location.y);
+  console.log("applyFall y " + activeRock.location.y);
   if (activeRock.location.y === 0) {
     activeRock.falling = false;
     return;
   }
-  const closeToGround = activeRock.location.y === chamber.length;
-  if (!closeToGround) {
-    console.log(`!closeToGround ${activeRock.location.y} ${chamber.length}`);
+  const aboveGround = activeRock.location.y > chamber.length;
+  if (aboveGround) {
+    // console.log(`!closeToGround ${activeRock.location.y} ${chamber.length}`);
     activeRock.location.y -= 1;
     return;
   }
-  const rockBottom = activeRock.shape.slice(-1)[0];
-  const groundTop = chamber.slice(-1)[0] || new Set();
-  console.log(rockBottom);
-  console.log(groundTop);
-  if (
-    Array.from(rockBottom).some((r) => groundTop.has(r + activeRock.location.x))
-  ) {
-    activeRock.falling = false;
-    return;
+  // const rockBottom = activeRock.shape.slice(-1)[0];
+  // const groundTop = chamber.slice(-1)[0] || new Set();
+  // console.log(rockBottom);
+  // console.log(groundTop);
+  if (rockCanMoveDown({ chamber, activeRock })) {
+    activeRock.location.y -= 1;
   } else {
-    activeRock.location.y -= 1;
-    return;
+    activeRock.falling = false;
   }
+  // if (
+  //   Array.from(rockBottom).some((r) => groundTop.has(r + activeRock.location.x))
+  // ) {
+  //   activeRock.falling = false;
+  //   return;
+  // } else {
+  //   activeRock.location.y -= 1;
+  //   return;
+  // }
 };
 
 const rockLanded = ({ activeRock }: GameState) => !activeRock.falling;
@@ -163,6 +191,7 @@ const landRock = ({ chamber, activeRock }: GameState) => {
   // const nextChamber = cloneChamber(chamber);
   rowsToAdd.forEach((row) => {
     const offsetedRow = Array.from(row).map((r) => r + activeRock.location.x);
+    // TODO: Need to merge rock rows
     chamber.push(new Set(offsetedRow));
   });
   // return nextChamber;
@@ -182,15 +211,15 @@ const processRocks = (iterations: number, jets: Jet[]) => {
 
   while (i <= iterations) {
     while (rockFalling(currentState)) {
-      renderState(currentState);
       applyGas(currentState, jets[j]);
       j = (j + 1) % jl;
       applyFall(currentState);
+      renderState(currentState);
       // console.log("j " + j);
       if (rockLanded(currentState)) {
-        // console.log("rock landed " + r);
+        console.log("rock landed " + r);
         landRock(currentState);
-        chambers.push(currentState.chamber);
+        // chambers.push(currentState.chamber);
         r = (r + 1) % 5;
         // console.log("highest rock " + highestRock(currentState.chamber));
         currentState = {
@@ -200,14 +229,16 @@ const processRocks = (iterations: number, jets: Jet[]) => {
             y: highestRock(currentState.chamber) + 4,
           }),
         };
+        break;
       }
     }
+    // console.log("!rockFalling");
     if (i % 100 === 0) {
       console.log(i);
     }
     i++;
   }
-  return highestRock(chambers.slice(-1)[0]) + 1;
+  return highestRock(currentState.chamber) + 1;
 };
 const parseJets = (lines: string[]): Jet[] => {
   const line = lines[0];
