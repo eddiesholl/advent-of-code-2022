@@ -12,6 +12,7 @@ type Rock = {
   shape: RockShape;
   location: Location;
   width: number;
+  height: number;
   falling: boolean;
 };
 type GameState = {
@@ -19,9 +20,7 @@ type GameState = {
   activeRock: Rock;
 };
 type Jet = ">" | "<";
-const rockMap = {
-  0: { type: "-", shape: [] },
-};
+
 const createRock = (r: number, location: Location): Rock => {
   switch (r) {
     default:
@@ -31,6 +30,7 @@ const createRock = (r: number, location: Location): Rock => {
         shape: [new Set([0, 1, 2, 3])],
         location,
         width: 4,
+        height: 1,
         falling: true,
       };
     case 1:
@@ -39,6 +39,7 @@ const createRock = (r: number, location: Location): Rock => {
         shape: [new Set([1]), new Set([0, 1, 2]), new Set([1])],
         location,
         width: 3,
+        height: 3,
         falling: true,
       };
     case 2:
@@ -46,7 +47,8 @@ const createRock = (r: number, location: Location): Rock => {
         type: "]",
         shape: [new Set([2]), new Set([2]), new Set([0, 1, 2])],
         location,
-        width: 4,
+        width: 3,
+        height: 3,
         falling: true,
       };
     case 3:
@@ -55,6 +57,7 @@ const createRock = (r: number, location: Location): Rock => {
         shape: [new Set([0]), new Set([0]), new Set([0]), new Set([0])],
         location,
         width: 1,
+        height: 4,
         falling: true,
       };
     case 4:
@@ -63,21 +66,59 @@ const createRock = (r: number, location: Location): Rock => {
         shape: [new Set([0, 1]), new Set([0, 1])],
         location,
         width: 2,
+        height: 2,
         falling: false,
       };
   }
 };
+const rockCanMoveLeft = ({ activeRock, chamber }: GameState): boolean => {
+  if (activeRock.location.x === 0) {
+    return false;
+  }
+  const rowsFree = activeRock.shape.map((rockRow, rockShapeIndex) => {
+    const chamberRowNumber =
+      activeRock.location.y + (activeRock.height - 1 - rockShapeIndex);
+    const chamberRow = chamber[chamberRowNumber];
+    if (!chamberRow) {
+      return true;
+    }
+    return Array.from(rockRow).every(
+      (r) => !chamberRow.has(r + activeRock.location.x - 1)
+    );
+  });
+  return rowsFree.every(Boolean);
+};
+const rockCanMoveRight = ({ activeRock, chamber }: GameState): boolean => {
+  if (activeRock.location.x + activeRock.width >= chamberWidth) {
+    return false;
+  }
+  const rowsFree = activeRock.shape.map((rockRow, rockShapeIndex) => {
+    const chamberRowNumber =
+      activeRock.location.y + (activeRock.height - 1 - rockShapeIndex);
+    const chamberRow = chamber[chamberRowNumber];
+    console.log(rockRow);
+    console.log(chamberRow);
+    if (!chamberRow) {
+      return true;
+    }
+    return Array.from(rockRow).every(
+      (rx) => !chamberRow.has(rx + activeRock.location.x + 1)
+    );
+  });
+  return rowsFree.every(Boolean);
+};
 
-const applyGas = ({ activeRock }: GameState, jet: Jet) => {
+const applyGas = ({ activeRock, chamber }: GameState, jet: Jet) => {
   if (jet === "<") {
     // console.log("applyGas <");
-    if (activeRock.location.x > 0) {
+    if (rockCanMoveLeft({ activeRock, chamber })) {
       console.log("applyGas < effective");
       activeRock.location.x -= 1;
     }
   } else if (jet === ">") {
     // console.log("applyGas >");
-    if (activeRock.location.x + activeRock.width < chamberWidth) {
+    if (rockCanMoveRight({ activeRock, chamber })) {
+      // if (activeRock.location.x + activeRock.width < chamberWidth) {
       console.log("applyGas > effective");
       activeRock.location.x += 1;
     }
@@ -176,4 +217,12 @@ const parseJets = (lines: string[]): Jet[] => {
     .filter(notEmpty);
 };
 const b = () => void 0;
-export { parseJets, processRocks, applyGas, GameState, chamberWidth, Row };
+export {
+  parseJets,
+  processRocks,
+  applyGas,
+  GameState,
+  chamberWidth,
+  Row,
+  createRock,
+};
