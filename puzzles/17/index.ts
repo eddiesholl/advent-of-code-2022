@@ -189,10 +189,21 @@ const cloneChamber = (chamber: Chamber): Chamber =>
 const landRock = ({ chamber, activeRock }: GameState) => {
   const rowsToAdd = [...activeRock.shape].reverse();
   // const nextChamber = cloneChamber(chamber);
-  rowsToAdd.forEach((row) => {
-    const offsetedRow = Array.from(row).map((r) => r + activeRock.location.x);
-    // TODO: Need to merge rock rows
-    chamber.push(new Set(offsetedRow));
+  activeRock.shape.forEach((fallingRow, fallingRowIndex) => {
+    const h = activeRock.location.y + (activeRock.height - fallingRowIndex - 1);
+    const chamberRow = chamber[h];
+    const fallingRowArray = Array.from(fallingRow);
+    console.log("h " + h);
+    if (chamberRow) {
+      console.log("merge new landed row " + fallingRowArray);
+      fallingRowArray.forEach((x) => chamberRow.add(x + activeRock.location.x));
+    } else {
+      const newLandedRow = fallingRowArray.map(
+        (r) => r + activeRock.location.x
+      );
+      console.log("land new row" + newLandedRow);
+      chamber[h] = new Set(newLandedRow);
+    }
   });
   // return nextChamber;
 };
