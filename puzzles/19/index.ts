@@ -1,4 +1,5 @@
 import { notEmpty } from "../common/array";
+import { sumValues } from "../common/math";
 
 type RobotCost = {
   ore: number;
@@ -12,6 +13,31 @@ type Blueprint = {
   obsidianRobotCost: RobotCost;
   geodeRobotCost: RobotCost;
 };
+type GameState = {
+  ore: number;
+  oreRobots: number;
+  clay: number;
+  clayRobots: number;
+  obsidian: number;
+  obsidianRobots: number;
+  geodes: number;
+  geodeRobots: number;
+};
+type RobotName = "ore" | "clay" | "obsidian" | "geode";
+
+type Noop = { kind: "noop" };
+type BuildAction = { kind: "build"; robot: RobotName; cost: RobotCost };
+type Action = Noop | BuildAction;
+type Minute = {
+  t: number;
+  finalState: GameState;
+  action: Action;
+};
+type TerminalState = {
+  minutes: Minute[];
+  finalState: GameState;
+};
+
 const parseLines = (lines: string[]): Blueprint[] =>
   lines
     .map((line) => {
@@ -37,5 +63,64 @@ const parseLines = (lines: string[]): Blueprint[] =>
       }
     })
     .filter(notEmpty);
-const b = () => void 0;
-export { parseLines, b };
+const canAfford = (cost: RobotCost, state: GameState): boolean =>
+  state.clay >= cost.clay &&
+  state.obsidian >= cost.obsidian &&
+  state.ore >= cost.ore;
+
+const recurse = (
+  blueprint: Blueprint,
+  gameState: GameState,
+  minutes: Minute[],
+  currentTime: number
+): TerminalState => {
+  if (currentTime > 24) {
+    return { minutes, finalState: gameState };
+  }
+
+  const actions: Action[] = [{ kind: "noop" }];
+  if (canAfford(blueprint.clayRobotCost, gameState)) {
+    actions.push({
+      kind: "build",
+      robot: "clay",
+      cost: blueprint.clayRobotCost,
+    });
+  }
+  const possibleTerminals = actions.map((action) => {
+    const nextState = updateState(gameState, action);
+    const minute = {
+      t: currentTime,
+      finalState: nextState,
+      action,
+    };
+    return recurse(
+      blueprint,
+      nextState,
+      minutes.concat(minute),
+      currentTime + 1
+    );
+  });
+  return possibleTerminals.sort(
+    (a, b) => b.finalState.geodes - a.finalState.geodes
+  )[0];
+};
+const processBlueprints = (blueprints: Blueprint[]): number => {
+  const startingState: GameState = {
+    ore: 1,
+    oreRobots: 0,
+    clay: 0,
+    clayRobots: 0,
+    obsidian: 0,
+    obsidianRobots: 0,
+    geodes: 0,
+    geodeRobots: 0,
+  };
+  return blueprints
+    .map((blueprint) => {
+      const maxGeodesOpened = recurse(blueprint, startingState, [], 1);
+      maxGeodesOpened.minutes.forEach(renderMinute);
+      return maxGeodesOpened.finalState.geodes * blueprint.name;
+    })
+    .reduce(sumValues, 0);
+};
+export { parseLines, processBlueprints };

@@ -1,7 +1,14 @@
 import { readLines } from "../common/input";
-import { parseLines } from "./index";
+import { parseLines, processBlueprints } from "./index";
 
 describe("19", () => {
+  describe("processBlueprints", () => {
+    it("handles the example", () => {
+      expect(
+        processBlueprints(parseLines(readLines(__dirname, "example.txt")))
+      ).toEqual(33);
+    });
+  });
   describe("parseLines", () => {
     it("handles the example", () => {
       expect(parseLines(readLines(__dirname, "example.txt"))).toEqual([
