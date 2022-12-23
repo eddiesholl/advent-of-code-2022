@@ -139,7 +139,7 @@ const recurse = (
 const processBlueprints = (blueprints: Blueprint[]): number => {
   const startingState: GameState = {
     ore: 1,
-    oreRobots: 0,
+    oreRobots: 1,
     clay: 0,
     clayRobots: 0,
     obsidian: 0,
