@@ -1,3 +1,5 @@
+import { isContinueStatement } from "typescript";
+import { renderMinute } from "./render";
 import { notEmpty } from "../common/array";
 import { sumValues } from "../common/math";
 
@@ -68,6 +70,36 @@ const canAfford = (cost: RobotCost, state: GameState): boolean =>
   state.obsidian >= cost.obsidian &&
   state.ore >= cost.ore;
 
+const consume = (prevState: GameState, cost: RobotCost): GameState => {
+  return {
+    ...prevState,
+    clay: prevState.clay - cost.clay,
+    obsidian: prevState.obsidian - cost.obsidian,
+    ore: prevState.ore - cost.ore,
+  };
+};
+const updateState = (prevState: GameState, action: Action): GameState => {
+  const nextState = {
+    ...prevState,
+    ore: prevState.ore + prevState.oreRobots,
+    clay: prevState.clay + prevState.clayRobots,
+    obsidian: prevState.obsidian + prevState.obsidianRobots,
+    geodes: prevState.geodes + prevState.geodeRobots,
+  };
+  if (action.kind === "noop") {
+    return nextState;
+  }
+  if (action.robot === "clay") {
+    nextState.clayRobots += 1;
+  } else if (action.robot === "geode") {
+    nextState.geodeRobots += 1;
+  } else if (action.robot === "obsidian") {
+    nextState.obsidianRobots += 1;
+  } else if (action.robot === "ore") {
+    nextState.oreRobots += 1;
+  }
+  return consume(nextState, action.cost);
+};
 const recurse = (
   blueprint: Blueprint,
   gameState: GameState,
@@ -123,4 +155,4 @@ const processBlueprints = (blueprints: Blueprint[]): number => {
     })
     .reduce(sumValues, 0);
 };
-export { parseLines, processBlueprints };
+export { parseLines, processBlueprints, Minute };

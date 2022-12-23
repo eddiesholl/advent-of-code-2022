@@ -1,5 +1,7 @@
 import { readLines } from "../common/input";
-import { a } from "./index";
+import { parseLines, processBlueprints } from "./index";
 
-const score = a(readLines(__dirname));
+const score = processBlueprints(
+  parseLines(readLines(__dirname, "example.txt"))
+);
 console.log("Score is " + score);
