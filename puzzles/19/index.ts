@@ -110,14 +110,34 @@ const recurse = (
     return { minutes, finalState: gameState };
   }
 
-  const actions: Action[] = [{ kind: "noop" }];
-  if (canAfford(blueprint.clayRobotCost, gameState)) {
+  const actions: Action[] = [];
+  if (canAfford(blueprint.geodeRobotCost, gameState)) {
+    actions.push({
+      kind: "build",
+      robot: "geode",
+      cost: blueprint.geodeRobotCost,
+    });
+  } else if (canAfford(blueprint.obsidianRobotCost, gameState)) {
+    actions.push({
+      kind: "build",
+      robot: "obsidian",
+      cost: blueprint.obsidianRobotCost,
+    });
+  } else if (canAfford(blueprint.clayRobotCost, gameState)) {
     actions.push({
       kind: "build",
       robot: "clay",
       cost: blueprint.clayRobotCost,
     });
+  } else if (canAfford(blueprint.oreRobotCost, gameState)) {
+    actions.push({
+      kind: "build",
+      robot: "ore",
+      cost: blueprint.oreRobotCost,
+    });
   }
+  actions.push({ kind: "noop" });
+
   const possibleTerminals = actions.map((action) => {
     const nextState = updateState(gameState, action);
     const minute = {
@@ -150,6 +170,7 @@ const processBlueprints = (blueprints: Blueprint[]): number => {
   return blueprints
     .map((blueprint) => {
       const maxGeodesOpened = recurse(blueprint, startingState, [], 1);
+      console.log("Blueprint " + blueprint.name);
       maxGeodesOpened.minutes.forEach(renderMinute);
       return maxGeodesOpened.finalState.geodes * blueprint.name;
     })

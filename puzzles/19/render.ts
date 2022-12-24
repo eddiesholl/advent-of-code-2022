@@ -2,7 +2,7 @@ import { Minute } from "./index";
 
 const logRobotLine = (r: number, n: number, name: string) =>
   console.log(
-    `${r} ore-collecting robot${
+    `${r} ${name}-collecting robot${
       r > 0 ? "s" : ""
     } collects ${r} ore; you now have ${n} ${name}.`
   );
