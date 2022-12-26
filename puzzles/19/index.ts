@@ -39,6 +39,7 @@ type TerminalState = {
   minutes: Minute[];
   finalState: GameState;
 };
+type BestResults = Record<number, GameState>;
 
 const parseLines = (lines: string[]): Blueprint[] =>
   lines
@@ -100,12 +101,31 @@ const updateState = (prevState: GameState, action: Action): GameState => {
   }
   return consume(nextState, action.cost);
 };
+const definitelyBetter = (candidate: GameState, baseline: GameState) => {
+  if (candidate === undefined) {
+    return false;
+  }
+  if (baseline === undefined) {
+    return true;
+  }
+  return (
+    candidate.clay > baseline.clay &&
+    candidate.clayRobots > baseline.clayRobots &&
+    candidate.geodeRobots > baseline.geodeRobots &&
+    candidate.geodes > baseline.geodes &&
+    candidate.obsidian > baseline.obsidian &&
+    candidate.obsidianRobots > baseline.obsidianRobots &&
+    candidate.ore > baseline.ore &&
+    candidate.oreRobots > baseline.oreRobots
+  );
+};
 const recurse = (
   blueprint: Blueprint,
   gameState: GameState,
   minutes: Minute[],
-  currentTime: number
-): TerminalState => {
+  currentTime: number,
+  bestResults: BestResults
+): TerminalState | undefined => {
   if (currentTime > 24) {
     return { minutes, finalState: gameState };
   }
@@ -117,19 +137,22 @@ const recurse = (
       robot: "geode",
       cost: blueprint.geodeRobotCost,
     });
-  } else if (canAfford(blueprint.obsidianRobotCost, gameState)) {
+  }
+  if (canAfford(blueprint.obsidianRobotCost, gameState)) {
     actions.push({
       kind: "build",
       robot: "obsidian",
       cost: blueprint.obsidianRobotCost,
     });
-  } else if (canAfford(blueprint.clayRobotCost, gameState)) {
+  }
+  if (canAfford(blueprint.clayRobotCost, gameState)) {
     actions.push({
       kind: "build",
       robot: "clay",
       cost: blueprint.clayRobotCost,
     });
-  } else if (canAfford(blueprint.oreRobotCost, gameState)) {
+  }
+  if (canAfford(blueprint.oreRobotCost, gameState)) {
     actions.push({
       kind: "build",
       robot: "ore",
@@ -138,23 +161,42 @@ const recurse = (
   }
   actions.push({ kind: "noop" });
 
-  const possibleTerminals = actions.map((action) => {
+  const possibleTerminals: (TerminalState | undefined)[] = [];
+  actions.forEach((action) => {
+    if (currentTime < 5) {
+      console.log(currentTime);
+    }
     const nextState = updateState(gameState, action);
+    if (nextState.clay < 0 || nextState.ore < 0 || nextState.obsidian < 0) {
+      console.log("Bad state detected");
+      console.dir(nextState);
+    }
+    const currentBestForT = bestResults[currentTime];
+    if (currentBestForT && definitelyBetter(currentBestForT, nextState)) {
+      console.log("bailing at " + currentTime);
+      return;
+    }
+    if (definitelyBetter(nextState, currentBestForT)) {
+      console.log("found better at " + currentTime);
+      bestResults[currentTime] = nextState;
+    }
     const minute = {
       t: currentTime,
       finalState: nextState,
       action,
     };
-    return recurse(
+    const terminal = recurse(
       blueprint,
       nextState,
       minutes.concat(minute),
-      currentTime + 1
+      currentTime + 1,
+      bestResults
     );
+    possibleTerminals.push(terminal);
   });
-  return possibleTerminals.sort(
-    (a, b) => b.finalState.geodes - a.finalState.geodes
-  )[0];
+  return possibleTerminals
+    .filter(notEmpty)
+    .sort((a, b) => b.finalState.geodes - a.finalState.geodes)[0];
 };
 const processBlueprints = (blueprints: Blueprint[]): number => {
   const startingState: GameState = {
@@ -169,10 +211,15 @@ const processBlueprints = (blueprints: Blueprint[]): number => {
   };
   return blueprints
     .map((blueprint) => {
-      const maxGeodesOpened = recurse(blueprint, startingState, [], 1);
+      const maxGeodesOpened = recurse(blueprint, startingState, [], 1, {});
       console.log("Blueprint " + blueprint.name);
-      maxGeodesOpened.minutes.forEach(renderMinute);
-      return maxGeodesOpened.finalState.geodes * blueprint.name;
+      if (maxGeodesOpened) {
+        maxGeodesOpened.minutes.forEach(renderMinute);
+        return maxGeodesOpened.finalState.geodes * blueprint.name;
+      } else {
+        console.log("No solution found");
+        return 0;
+      }
     })
     .reduce(sumValues, 0);
 };
