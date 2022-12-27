@@ -4,7 +4,7 @@ const logRobotLine = (r: number, n: number, name: string) =>
   console.log(
     `${r} ${name}-collecting robot${
       r > 0 ? "s" : ""
-    } collects ${r} ore; you now have ${n} ${name}.`
+    } collects ${r} ${name}s; you now have ${n} ${name}s.`
   );
 /*
 Spend 3 ore and 14 clay to start building an obsidian-collecting robot.
@@ -28,9 +28,9 @@ const renderMinute = ({ action, finalState, t }: Minute) => {
     logRobotLine(finalState.obsidianRobots, finalState.obsidian, "obsidian");
   }
   if (finalState.geodeRobots > 0) {
-    logRobotLine(finalState.geodeRobots, finalState.geodes, "geodes");
+    logRobotLine(finalState.geodeRobots, finalState.geodes, "geode");
   }
-  if (action.kind === "build") {
+  if (action.kind === "build" || action.kind === "wait") {
     const bumpedRobot =
       action.robot === "clay"
         ? finalState.clayRobots
@@ -45,6 +45,7 @@ const renderMinute = ({ action, finalState, t }: Minute) => {
       } of them`
     );
   }
+  console.log(action);
   console.log("");
 };
 
