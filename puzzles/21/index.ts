@@ -13,31 +13,26 @@ const isOperation = (monkey: Monkey): monkey is OperationMonkey =>
 const isValue = (monkey: Monkey): monkey is ValueMonkey =>
   (monkey as ValueMonkey).value !== undefined;
 type Monkey = OperationMonkey | ValueMonkey;
-type MonkeyMap = Record<string, Monkey>;
 const createValue = (
-  op: OperationMonkey,
-  a: ValueMonkey,
-  b: ValueMonkey
+  { name, operator }: OperationMonkey,
+  a: number,
+  b: number
 ): ValueMonkey => {
-  let value: number = 0;
-  switch (op.operator) {
-    case "*":
-      value = a.value * b.value;
-      break;
-    case "/":
-      value = a.value / b.value;
-      break;
-    case "+":
-      value = a.value + b.value;
-      break;
-    case "-":
-      value = a.value - b.value;
-      break;
-  }
-  return { name: op.name, value };
+  const value =
+    operator === "*"
+      ? a * b
+      : operator === "/"
+      ? a / b
+      : operator === "+"
+      ? a + b
+      : operator === "-"
+      ? a - b
+      : 0;
+
+  return { name, value };
 };
 const findRootValue = (monkeys: Monkey[]): number => {
-  const monkeyInputs: MonkeyMap = {};
+  const monkeyInputs: Record<string, Monkey> = {};
   monkeys.forEach((m) => (monkeyInputs[m.name] = m));
   const monkeyNames = Object.keys(monkeyInputs);
   const monkeyCount = monkeyNames.length;
@@ -45,16 +40,19 @@ const findRootValue = (monkeys: Monkey[]): number => {
   while (swapped) {
     swapped = false;
     let i = 0;
-    let current: Monkey;
     while (i < monkeyCount) {
       const currentMonkeyName = monkeyNames[i];
-      current = monkeyInputs[currentMonkeyName];
+      const current = monkeyInputs[currentMonkeyName];
       if (isOperation(current)) {
         const a = monkeyInputs[current.a];
         const b = monkeyInputs[current.b];
 
         if (isValue(a) && isValue(b)) {
-          monkeyInputs[currentMonkeyName] = createValue(current, a, b);
+          monkeyInputs[currentMonkeyName] = createValue(
+            current,
+            a.value,
+            b.value
+          );
           swapped = true;
         }
       }
@@ -63,7 +61,7 @@ const findRootValue = (monkeys: Monkey[]): number => {
   }
   const root = monkeyInputs["root"];
   if (isOperation(root)) {
-    console.log("root has not been evaluated");
+    console.error("ERROR: root has not been evaluated");
     return 0;
   }
   return root.value;
@@ -88,5 +86,4 @@ const parseLines = (lines: string[]): Monkey[] => {
   });
   return result;
 };
-const b = () => void 0;
 export { parseLines, findRootValue };
