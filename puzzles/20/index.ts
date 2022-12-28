@@ -10,6 +10,8 @@ type NumberWrapper = {
   previous: NumberWrapper;
   next: NumberWrapper;
 };
+const renderWrapper = (subject: NumberWrapper): string =>
+  `(${subject.previous.value} < ${subject.value} > ${subject.next.value})`;
 const parseLines = (lines: string[]): number[] => {
   return lines.map((l) => parseInt(l)).filter((n) => !isNaN(n));
 };
@@ -39,50 +41,54 @@ const findTarget = (head: NumberWrapper, targetIndex: number) => {
   }
   return current;
 };
-const shiftRight = (shiftTarget: NumberWrapper): void => {
-  const shiftCount = shiftTarget.value;
+const unlink = (head: NumberWrapper): NumberWrapper => {
+  const previous = head.previous;
+  const next = head.next;
+  previous.next = next;
+  next.previous = previous;
+  return next;
+};
+const insertBefore = (newItem: NumberWrapper, head: NumberWrapper) => {
+  const previous = head.previous;
+  newItem.previous = previous;
+  previous.next = newItem;
+  newItem.next = head;
+  head.previous = newItem;
+};
+const shiftRight = (shiftTarget: NumberWrapper, numberCount: number): void => {
+  const shiftCount = shiftTarget.value % (numberCount - 1);
   let i = 0;
+  let newHead = unlink(shiftTarget);
   while (i < shiftCount) {
-    const next = shiftTarget.next;
-    const previous = shiftTarget.previous;
-    const newNext = shiftTarget.next.next;
-    shiftTarget.next = newNext;
-    shiftTarget.previous = next;
-    next.next = shiftTarget;
-    next.previous = previous;
-    previous.next = next;
-    newNext.previous = shiftTarget;
+    newHead = newHead.next;
     i++;
   }
+  insertBefore(shiftTarget, newHead);
 };
-const shiftLeft = (shiftTarget: NumberWrapper): void => {
-  const shiftCount = shiftTarget.value;
+// [3,2,-1,4] -> [3,2,4] -> [3,-1,2,4]
+const shiftLeft = (shiftTarget: NumberWrapper, numberCount: number): void => {
+  const shiftCount = shiftTarget.value % (numberCount - 1);
   let i = 0;
+  let newHead = unlink(shiftTarget);
   while (i > shiftCount) {
-    const next = shiftTarget.next;
-    const previous = shiftTarget.previous;
-    const newPrevious = shiftTarget.previous.previous;
-    shiftTarget.previous = newPrevious;
-    shiftTarget.next = previous;
-    previous.previous = shiftTarget;
-    previous.next = next;
-    next.previous = previous;
-    newPrevious.next = shiftTarget;
+    newHead = newHead.previous;
     i--;
   }
+  insertBefore(shiftTarget, newHead);
 };
 
 const mixIndex = (
   head: NumberWrapper,
-  originalIndex: number
+  originalIndex: number,
+  numberCount: number
 ): NumberWrapper => {
   const target = findTarget(head, originalIndex);
   if (target.value === 0) {
     return head;
   } else if (target.value > 0) {
-    shiftRight(target);
+    shiftRight(target, numberCount);
   } else {
-    shiftLeft(target);
+    shiftLeft(target, numberCount);
   }
   return head;
 };
@@ -123,13 +129,7 @@ const mixFile = (numbers: number[]): number[] => {
   const numberCount = numbers.length;
   let n = 0;
   while (n < numberCount) {
-    console.log(n);
-    console.log("before");
-    console.log(renderLinkedList(head));
-
-    head = mixIndex(head, n);
-    console.log("after");
-    console.log(renderLinkedList(head));
+    head = mixIndex(head, n, numberCount);
 
     n++;
   }
@@ -161,41 +161,3 @@ export {
   mixIndex,
   renderLinkedList,
 };
-
-/**
- * const index = wrappers.findIndex((w) => w.originalIndex === n);
-    console.log(`${n} at ${index}`);
-    const wrapper = wrappers[index];
-    const shift = wrapper.value;
-    const destinationIndex = (index + shift) % numberCount;
-    console.log(`destination ${destinationIndex}`);
-    wrapper.modifiedIndex = destinationIndex;
-    if (index < destinationIndex) {
-      wrapper.modifiedIndex = destinationIndex;
-      wrappers.forEach((w) => {
-        if (w.modifiedIndex > index && w.originalIndex < destinationIndex) {
-          w.modifiedIndex -= 1;
-        }
-      });
-      // const head = wrappers.slice(0, index);
-      // const moving = wrappers.slice(index, index + 1);
-      // const middle = wrappers.slice(index + 1, destinationIndex);
-      // const tail = wrappers.slice(destinationIndex + 1, numberCount);
-      // console.log("wrappers before");
-      // console.log(wrappers);
-      // console.log(head);
-      // console.log(middle);
-      // console.log(moving);
-      // console.log(tail);
-      // wrappers = head.concat(middle).concat(moving).concat(tail);
-      // console.log("wrappers after");
-      // console.log(wrappers);
-    }
-    if (index > destinationIndex) {
-      wrapper.modifiedIndex = destinationIndex;
-      wrappers.forEach((w) => {
-        if (w.modifiedIndex > index && w.originalIndex < destinationIndex) {
-          w.modifiedIndex -= 1;
-        }
-      });
- */
