@@ -1,3 +1,5 @@
+import { createMap } from "../common/map";
+
 type OperationMonkey = {
   name: string;
   operator: string;
@@ -32,8 +34,7 @@ const createValue = (
   return { name, value };
 };
 const findRootValue = (monkeys: Monkey[]): number => {
-  const monkeyInputs: Record<string, Monkey> = {};
-  monkeys.forEach((m) => (monkeyInputs[m.name] = m));
+  const monkeyInputs = createMap(monkeys, (m) => m.name);
   const monkeyNames = Object.keys(monkeyInputs);
   const monkeyCount = monkeyNames.length;
   let swapped = true;
