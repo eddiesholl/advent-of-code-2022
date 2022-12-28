@@ -1,5 +1,8 @@
 import { readLines } from "../common/input";
-import { a } from "./index";
+import { parseLines, mixFile, findCoordinates } from "./index";
 
-const score = a(readLines(__dirname));
+const score = findCoordinates(
+  // mixFile(parseLines(readLines(__dirname, "input.txt")))
+  mixFile(parseLines(readLines(__dirname, "example.txt")))
+);
 console.log("Score is " + score);

@@ -1,3 +1,4 @@
+import { readLines } from "../common/input";
 import {
   parseLines,
   mixFile,
@@ -83,6 +84,12 @@ describe("20", () => {
   describe("mixFile", () => {
     it("handles the first example", () => {
       expect(mixFile([1, 2, -3, 3, -2, 0, 4])).toEqual([1, 2, -3, 4, 0, 3, -2]);
+    });
+  });
+  describe("parseLines", () => {
+    it("handles the example", () => {
+      const result = parseLines(readLines(__dirname, "example.txt"));
+      expect(result).toEqual([1, 2, -3, 3, -2, 0, 4]);
     });
   });
 });

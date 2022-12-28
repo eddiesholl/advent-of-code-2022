@@ -10,7 +10,9 @@ type NumberWrapper = {
   previous: NumberWrapper;
   next: NumberWrapper;
 };
-const parseLines = (lines: string[]): number[] => lines.map(parseInt);
+const parseLines = (lines: string[]): number[] => {
+  return lines.map((l) => parseInt(l)).filter((n) => !isNaN(n));
+};
 const buildList = (numbers: number[]): NumberWrapper => {
   const builders: WrapperBuilder[] = numbers.map((n, ix) => ({
     value: n,
@@ -32,17 +34,12 @@ const buildList = (numbers: number[]): NumberWrapper => {
 };
 const findTarget = (head: NumberWrapper, targetIndex: number) => {
   let current = head;
-  console.log("searching for originalIndex ===  " + targetIndex);
-  console.log(listToArray(head));
   while (current.originalIndex !== targetIndex) {
     current = current.next;
   }
-  console.log("found item for " + targetIndex);
-  console.log(current);
   return current;
 };
 const shiftRight = (shiftTarget: NumberWrapper): void => {
-  console.log("shiftRight");
   const shiftCount = shiftTarget.value;
   let i = 0;
   while (i < shiftCount) {
@@ -59,7 +56,6 @@ const shiftRight = (shiftTarget: NumberWrapper): void => {
   }
 };
 const shiftLeft = (shiftTarget: NumberWrapper): void => {
-  console.log("shiftLeft");
   const shiftCount = shiftTarget.value;
   let i = 0;
   while (i > shiftCount) {
@@ -82,7 +78,6 @@ const mixIndex = (
 ): NumberWrapper => {
   const target = findTarget(head, originalIndex);
   if (target.value === 0) {
-    console.log("target === 0");
     return head;
   } else if (target.value > 0) {
     shiftRight(target);
@@ -129,7 +124,11 @@ const mixFile = (numbers: number[]): number[] => {
   let n = 0;
   while (n < numberCount) {
     console.log(n);
+    console.log("before");
+    console.log(renderLinkedList(head));
+
     head = mixIndex(head, n);
+    console.log("after");
     console.log(renderLinkedList(head));
 
     n++;
@@ -137,7 +136,18 @@ const mixFile = (numbers: number[]): number[] => {
   return listToArray(head);
 };
 const findCoordinates = (numbers: number[]): number => {
-  return 0;
+  const numberCount = numbers.length;
+  const zeroIndex = numbers.findIndex((n) => n === 0);
+  const index1000 = (zeroIndex + 1000) % numberCount;
+  const index2000 = (zeroIndex + 2000) % numberCount;
+  const index3000 = (zeroIndex + 3000) % numberCount;
+  const number1000 = numbers[index1000];
+  const number2000 = numbers[index2000];
+  const number3000 = numbers[index3000];
+  console.log(number1000);
+  console.log(number2000);
+  console.log(number3000);
+  return number1000 + number2000 + number3000;
 };
 export {
   parseLines,
