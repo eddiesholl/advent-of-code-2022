@@ -1,3 +1,5 @@
+import { renderLinkedList } from "./render";
+
 type WrapperBuilder = {
   value: number;
   originalIndex: number;
@@ -10,8 +12,7 @@ type NumberWrapper = {
   previous: NumberWrapper;
   next: NumberWrapper;
 };
-const renderWrapper = (subject: NumberWrapper): string =>
-  `(${subject.previous.value} < ${subject.value} > ${subject.next.value})`;
+
 const parseLines = (lines: string[]): number[] => {
   return lines.map((l) => parseInt(l)).filter((n) => !isNaN(n));
 };
@@ -56,18 +57,23 @@ const insertBefore = (newItem: NumberWrapper, head: NumberWrapper) => {
   head.previous = newItem;
 };
 const shiftRight = (shiftTarget: NumberWrapper, numberCount: number): void => {
-  const shiftCount = shiftTarget.value % (numberCount - 1);
+  const shiftCount = shiftTarget.value;
+  // const shiftCount = shiftTarget.value % (numberCount - 1);
   let i = 0;
   let newHead = unlink(shiftTarget);
+  // console.log(shiftCount);
+  // console.log(renderLinkedList(newHead));
   while (i < shiftCount) {
     newHead = newHead.next;
     i++;
   }
+  // console.log(renderLinkedList(newHead));
   insertBefore(shiftTarget, newHead);
+  // console.log(renderLinkedList(shiftTarget));
 };
 // [3,2,-1,4] -> [3,2,4] -> [3,-1,2,4]
 const shiftLeft = (shiftTarget: NumberWrapper, numberCount: number): void => {
-  const shiftCount = shiftTarget.value % (numberCount - 1);
+  const shiftCount = shiftTarget.value;
   let i = 0;
   let newHead = unlink(shiftTarget);
   while (i > shiftCount) {
@@ -107,23 +113,7 @@ const listToArray = (head: NumberWrapper): number[] => {
   }
   return result;
 };
-const renderLinkedList = (head: NumberWrapper): string => {
-  const result: string[] = [];
-  let current = head;
-  while (true) {
-    result.push(
-      `${current.previous.value} -> ${current.value} -> ${current.next.value}`
-    );
-    current = current.next;
-    if (current === head) {
-      break;
-    }
-    if (result.length > 20) {
-      break;
-    }
-  }
-  return result.join(" | ");
-};
+
 const mixFile = (numbers: number[]): number[] => {
   let head = buildList(numbers);
   const numberCount = numbers.length;
@@ -159,5 +149,4 @@ export {
   NumberWrapper,
   listToArray,
   mixIndex,
-  renderLinkedList,
 };

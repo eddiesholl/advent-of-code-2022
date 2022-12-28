@@ -9,8 +9,8 @@ import {
   NumberWrapper,
   listToArray,
   mixIndex,
-  renderLinkedList,
 } from "./index";
+import { renderLinkedList } from "./render";
 
 describe("20", () => {
   describe("shiftRight", () => {
@@ -23,6 +23,12 @@ describe("20", () => {
       console.log(start.value);
       expect(listToArray(start)).toEqual([1, -3, 3, -2, 0, 4, 2]);
     });
+    it("handles value is multiple of list length", () => {
+      start = buildList([10, 2, 3, 4, 5]);
+      shiftRight(start, 7);
+      console.log(start.value);
+      expect(listToArray(start)).toEqual([10, 4, 5, 2, 3]);
+    });
   });
   describe("shiftLeft", () => {
     let start: NumberWrapper;
@@ -32,6 +38,12 @@ describe("20", () => {
       shiftLeft(start.next, 7); // -3
       console.log(start.value);
       expect(listToArray(start)).toEqual([1, 2, 3, -2, -3, 0, 4]);
+    });
+    it("handles value is multiple of list length", () => {
+      start = buildList([-10, 2, 3, 4, 5]);
+      shiftLeft(start, 7);
+      console.log(start.value);
+      expect(listToArray(start)).toEqual([-10, 4, 5, 2, 3]);
     });
   });
   describe("mixIndex", () => {
