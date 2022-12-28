@@ -45,41 +45,35 @@ const shiftRight = (shiftTarget: NumberWrapper): void => {
   console.log("shiftRight");
   const shiftCount = shiftTarget.value;
   let i = 0;
-  let destination = shiftTarget;
   while (i < shiftCount) {
-    destination = destination.next;
+    const next = shiftTarget.next;
+    const previous = shiftTarget.previous;
+    const newNext = shiftTarget.next.next;
+    shiftTarget.next = newNext;
+    shiftTarget.previous = next;
+    next.next = shiftTarget;
+    next.previous = previous;
+    previous.next = next;
+    newNext.previous = shiftTarget;
     i++;
   }
-  const oldPrev = shiftTarget.previous;
-  const oldNext = shiftTarget.next;
-  const newNext = destination.next;
-  const newPrev =
-    destination.previous === shiftTarget ? destination : destination.previous;
-  shiftTarget.next = newNext;
-  shiftTarget.previous = newPrev;
-  destination.next = shiftTarget;
-  destination.previous = oldPrev;
-  oldPrev.next = oldNext;
-  newNext.previous = shiftTarget;
 };
 const shiftLeft = (shiftTarget: NumberWrapper): void => {
   console.log("shiftLeft");
   const shiftCount = shiftTarget.value;
   let i = 0;
-  let destination = shiftTarget;
   while (i > shiftCount) {
-    destination = destination.previous;
+    const next = shiftTarget.next;
+    const previous = shiftTarget.previous;
+    const newPrevious = shiftTarget.previous.previous;
+    shiftTarget.previous = newPrevious;
+    shiftTarget.next = previous;
+    previous.previous = shiftTarget;
+    previous.next = next;
+    next.previous = previous;
+    newPrevious.next = shiftTarget;
     i--;
   }
-  const oldPrev = shiftTarget.previous;
-  const oldNext = shiftTarget.next;
-  const newNext = destination;
-  const newPrev = destination.previous; // REVISIT move by -1
-  shiftTarget.next = newNext;
-  shiftTarget.previous = newPrev;
-  destination.previous = shiftTarget;
-  oldPrev.next = oldNext;
-  newPrev.next = shiftTarget;
 };
 
 const mixIndex = (
