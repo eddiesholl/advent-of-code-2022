@@ -6,6 +6,7 @@ type Material = OPEN | CLOSED | WALL;
 type GridRow = Material[];
 type Grid = GridRow[];
 type Move = string | number;
+const isTurn = (move: Move): move is string => typeof move === "string";
 type Moves = Move[];
 type Game = {
   grid: Grid;
@@ -22,11 +23,27 @@ const findStart = (game: Game): Location => {
   const x = firstRow.indexOf(".");
   return { x, y: 0, bearing: "right" };
 };
+type MoveShifts = Record<string, Bearing>;
+const moveMap: Record<string, MoveShifts> = {
+  up: { L: "left", R: "right" },
+  down: { L: "right", R: "left" },
+  left: { L: "down", R: "up" },
+  right: { L: "up", R: "down" },
+};
+const applyTurn = (l: Location, turn: string): Location => {
+  return { ...l, bearing: moveMap[l.bearing][turn] };
+};
 
 const processMoves = (game: Game): Location => {
-  const start = findStart(game);
+  let location = findStart(game);
+  game.moves.forEach((move) => {
+    if (isTurn(move)) {
+      location = applyTurn(location, move);
+    }
+    // TODO: walk
+  });
 
-  return start;
+  return location;
 };
 const calculateScore = (l: Location) => {
   const bearingScore =
