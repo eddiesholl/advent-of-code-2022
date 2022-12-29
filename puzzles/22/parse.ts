@@ -4,7 +4,7 @@ const parseLines = (lines: string[]): Game => {
   const grid: Grid = [];
   const moves: Move[] = [];
   lines.forEach((line) => {
-    if (line.startsWith(" ") || line.startsWith(".")) {
+    if ([" ", ".", "#"].includes(line[0])) {
       grid.push(line.split("") as Material[]);
     } else {
       const moveMatch = line.match(/(\d+|[A-Z]+)/g);

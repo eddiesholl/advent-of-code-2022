@@ -1,3 +1,5 @@
+import { renderLocations } from "./render";
+
 type OPEN = ".";
 type CLOSED = " ";
 type WALL = "#";
@@ -144,12 +146,15 @@ const applyWalk = (
 };
 const processMoves = (game: Game): Location => {
   let location = findStart(game);
+  const locations: Location[] = [location];
   game.moves.forEach((move) => {
     if (isTurn(move)) {
       location = applyTurn(location, move);
     } else {
       location = applyWalk(location, game.grid, move);
     }
+    locations.push(location);
+    // renderLocations(game, locations, move);
   });
 
   return location;
@@ -165,4 +170,14 @@ const calculateScore = (l: Location) => {
       : 3;
   return 4 * (l.x + 1) + 1000 * (l.y + 1) + bearingScore;
 };
-export { Game, Grid, Move, Material, processMoves, calculateScore, applyWalk };
+export {
+  Game,
+  Grid,
+  Move,
+  Material,
+  Location,
+  Bearing,
+  processMoves,
+  calculateScore,
+  applyWalk,
+};
