@@ -1,7 +1,14 @@
 import { readLines } from "../common/input";
+import { calculateScore } from "./index";
 import { parseLines } from "./parse";
 
 describe("22", () => {
+  describe("calculateScore", () => {
+    it("handles the example", () => {
+      expect(calculateScore({ x: 7, y: 5, bearing: "right" })).toEqual(6032);
+    });
+  });
+
   describe("parseLines", () => {
     it("handles the example", () => {
       expect(parseLines(readLines(__dirname, "example.txt"))).toEqual({
