@@ -100,7 +100,6 @@ const applyWalk = (
             if (candidateLoc) {
               newLoc = candidateLoc;
             } else {
-              // console.log("walk bail, no h wrap candidate after close");
               break;
             }
           } else {
@@ -112,20 +111,16 @@ const applyWalk = (
             if (candidateLoc) {
               newLoc = candidateLoc;
             } else {
-              // console.log("walk bail, no v wrap candidate after close");
               break;
             }
           }
         }
       } else {
-        // console.log("wrap h");
         // We must have wrapped horizontally. Check if its possible to wrap in this current row
         const candidateLoc = firstCellInRow(newLoc.y, newLoc.bearing, grid);
-        // console.log(candidateLoc);
         if (candidateLoc) {
           newLoc = candidateLoc;
         } else {
-          // console.log("walk bail, no h wrap candidate after end");
           break;
         }
       }
@@ -135,13 +130,11 @@ const applyWalk = (
       if (candidateLoc) {
         newLoc = candidateLoc;
       } else {
-        // console.log("walk bail, no v wrap candidate after end");
         break;
       }
     }
     d++;
   }
-  // console.log("d: " + d);
   return newLoc;
 };
 const processMoves = (game: Game): Location => {
