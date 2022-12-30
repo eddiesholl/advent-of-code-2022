@@ -5,7 +5,7 @@ const parseLines = (lines: string[]): Elf[] => {
   lines.reverse().forEach((line, y) => {
     line.split("").forEach((char, x) => {
       if (char === "#") {
-        result.push({ name: result.length, x, y });
+        result.push({ x, y });
       }
     });
   });

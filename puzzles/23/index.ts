@@ -1,14 +1,30 @@
-type Location = {
+type Elf = {
   x: number;
   y: number;
 };
-type Elf = {
-  name: number;
-  x: number;
-  y: number;
+type Direction = {
+  name: string;
+  next: Direction;
+};
+const NORTH = { name: "north" } as Direction;
+const EAST = { name: "east", next: NORTH };
+const WEST = { name: "west", next: EAST };
+const SOUTH = { name: "south", next: WEST };
+NORTH.next = SOUTH;
+
+const makeTurn = (elfs: Elf[], direction: Direction): Elf[] => {
+  return elfs;
 };
 const processMoves = (elfs: Elf[]): Elf[] => {
-  return elfs;
+  let direction = NORTH;
+  let current = [...elfs];
+  let turn = 1;
+  while (turn <= 10) {
+    current = makeTurn(current, direction);
+    direction = direction.next;
+    turn++;
+  }
+  return current;
 };
 const calculateScore = (elfs: Elf[]): number => {
   const { xMin, yMin, xMax, yMax } = elfs.reduce(
@@ -24,4 +40,13 @@ const calculateScore = (elfs: Elf[]): number => {
   );
   return (xMax - xMin) * (yMax - yMin);
 };
-export { Elf, Location, processMoves, calculateScore };
+export {
+  Elf,
+  processMoves,
+  calculateScore,
+  makeTurn,
+  NORTH,
+  SOUTH,
+  EAST,
+  WEST,
+};
