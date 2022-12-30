@@ -13,3 +13,13 @@ export const arraysEqual = <T>(a: T[], b: T[]): boolean =>
   a.length === b.length && a.every((valA) => b.includes(valA));
 export const arraysEqualOrdered = <T>(a: T[], b: T[]): boolean =>
   a.length === b.length && a.every((valA, ix) => b[ix] === valA);
+
+export const containsAll = <T>(
+  searchTarget: T[],
+  requiredItems: T[]
+): boolean => requiredItems.every((i) => searchTarget.includes(i));
+
+export const containsNoneOf = <T>(
+  searchTarget: T[],
+  disallowedItems: T[]
+): boolean => searchTarget.every((i) => !disallowedItems.includes(i));

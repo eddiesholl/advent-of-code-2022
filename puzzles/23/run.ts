@@ -1,5 +1,8 @@
 import { readLines } from "../common/input";
-import { a } from "./index";
+import { calculateScore, processMoves } from "./index";
+import { parseLines } from "./parse";
 
-const score = a(readLines(__dirname));
+const score = calculateScore(
+  processMoves(parseLines(readLines(__dirname, "example.txt")))
+);
 console.log("Score is " + score);
