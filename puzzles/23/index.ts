@@ -14,9 +14,21 @@ type Direction = {
 };
 const elfIsAt = (elf: Elf, x: number, y: number) => elf.x === x && elf.y === y;
 const NORTH = { name: "north", searchSlots: ["nw", "n", "ne"] } as Direction;
-const EAST = { name: "east", next: NORTH, searchSlots: ["ne", "e", "se"] };
-const WEST = { name: "west", next: EAST, searchSlots: ["sw", "w", "nw"] };
-const SOUTH = { name: "south", next: WEST, searchSlots: ["se", "s", "sw"] };
+const EAST = {
+  name: "east",
+  next: NORTH,
+  searchSlots: ["ne", "e", "se"],
+} as Direction;
+const WEST = {
+  name: "west",
+  next: EAST,
+  searchSlots: ["sw", "w", "nw"],
+} as Direction;
+const SOUTH = {
+  name: "south",
+  next: WEST,
+  searchSlots: ["se", "s", "sw"],
+} as Direction;
 NORTH.next = SOUTH as Direction;
 
 const findNeighbours = (elfs: Elf[], i: number): NeighbourSlot[] => {
@@ -140,7 +152,10 @@ const calculateScore = (elfs: Elf[]): number => {
     },
     { xMin: Infinity, yMin: Infinity, xMax: 0, yMax: 0 }
   );
-  return (xMax - xMin) * (yMax - yMin);
+  // console.log(`${xMin},${yMin} - ${xMax},${yMax}`);
+  // console.log(`${xMax - xMin} * ${yMax - yMin}`);
+  // console.log(`elfs count ${elfs.length}`);
+  return (xMax - xMin + 1) * (yMax - yMin + 1) - elfs.length;
 };
 export {
   Elf,
@@ -152,4 +167,5 @@ export {
   EAST,
   WEST,
   elfId,
+  findNeighbours,
 };
