@@ -1,20 +1,30 @@
 import { readLines } from "../common/input";
-import { calculateScore, makeTurn, NORTH, processMoves } from "./index";
+import { calculateScore, Elf, makeTurn, NORTH, processMoves } from "./index";
 import { parseLines } from "./parse";
 
+const byXThenY = (a: Elf, b: Elf) => (a.x === b.x ? a.y - b.y : a.x - b.x);
 describe("23", () => {
   describe("makeTurn", () => {
     it("handles the 1st example", () => {
+      const expected = parseLines(readLines(__dirname, "example-1.txt"));
+      console.log("expected");
+      console.log(expected);
       expect(
-        makeTurn(parseLines(readLines(__dirname, "example.txt")), NORTH)
-      ).toEqual(parseLines(readLines(__dirname, "example-1.txt")));
+        makeTurn(parseLines(readLines(__dirname, "example.txt")), NORTH).sort(
+          byXThenY
+        )
+      ).toEqual(expected.sort(byXThenY));
     });
   });
   describe("processMoves", () => {
     it("handles the example", () => {
       expect(
-        processMoves(parseLines(readLines(__dirname, "example.txt")))
-      ).toEqual(parseLines(readLines(__dirname, "example-10.txt")));
+        processMoves(parseLines(readLines(__dirname, "example.txt"))).sort(
+          byXThenY
+        )
+      ).toEqual(
+        parseLines(readLines(__dirname, "example-10.txt")).sort(byXThenY)
+      );
     });
   });
   describe("calculateScore", () => {

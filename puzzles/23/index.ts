@@ -20,7 +20,7 @@ const SOUTH = { name: "south", next: WEST, searchSlots: ["se", "s", "sw"] };
 NORTH.next = SOUTH as Direction;
 
 const findNeighbours = (elfs: Elf[], i: number): NeighbourSlot[] => {
-  const { x, y } = elfs[0];
+  const { x, y } = elfs[i];
   const minX = x - 1;
   const maxX = x + 1;
   const minY = y - 1;
@@ -80,15 +80,19 @@ const makeTurn = (elfs: Elf[], direction: Direction): Elf[] => {
     const neighbours = findNeighbours(elfs, ix);
     if (neighbours.length > 0) {
       if (containsNoneOf(neighbours, direction.searchSlots)) {
+        // console.log("propose first " + direction.name);
         proposalsByIndex[ix] = translateElf(elf, direction.name);
       } else if (containsNoneOf(neighbours, direction.next.searchSlots)) {
-        proposalsByIndex[ix] = translateElf(elf, direction.name);
+        // console.log("propose second" + direction.next.name);
+        proposalsByIndex[ix] = translateElf(elf, direction.next.name);
       } else if (containsNoneOf(neighbours, direction.next.next.searchSlots)) {
-        proposalsByIndex[ix] = translateElf(elf, direction.name);
+        // console.log("propose third " + direction.next.next.name);
+        proposalsByIndex[ix] = translateElf(elf, direction.next.next.name);
       } else if (
         containsNoneOf(neighbours, direction.next.next.next.searchSlots)
       ) {
-        proposalsByIndex[ix] = translateElf(elf, direction.name);
+        // console.log("propose fourth " + direction.next.next.next.name);
+        proposalsByIndex[ix] = translateElf(elf, direction.next.next.next.name);
       }
     }
   });
@@ -100,9 +104,11 @@ const makeTurn = (elfs: Elf[], direction: Direction): Elf[] => {
     if (proposalForMe) {
       const id = elfId(proposalForMe);
       if (countByLocation[id] === 1) {
+        // console.log("used a proposal");
         return proposalForMe;
       }
     }
+    // console.log("no proposal");
     return { ...elf };
   });
   return newElfs;
@@ -111,6 +117,8 @@ const processMoves = (elfs: Elf[]): Elf[] => {
   let direction = NORTH;
   let current = [...elfs];
   let turn = 1;
+  renderElfs(elfs, turn);
+
   while (turn <= 10) {
     current = makeTurn(current, direction);
     renderElfs(current, turn);
