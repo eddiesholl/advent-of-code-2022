@@ -12,6 +12,8 @@ const parseLines = (lines: string[]) => {
   const grid: Grid = {
     start: { x: entranceX, y: 0 },
     end: { x: exitX, y: cleanLines.length - 1 },
+    width: cleanLines[0].length,
+    height: cleanLines.length,
   };
   const rows = cleanLines.slice(1, cleanLines.length - 1);
 
