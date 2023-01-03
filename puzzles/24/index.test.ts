@@ -1,7 +1,17 @@
 import { readLines } from "../common/input";
+import { processMoves } from "./index";
 import { parseLines } from "./parse";
 
 describe("24", () => {
+  describe("processMoves", () => {
+    it("handles the example", () => {
+      const { grid, blizzards } = parseLines(
+        readLines(__dirname, "example.txt")
+      );
+      const result = processMoves(grid, blizzards);
+      expect(result.length).toEqual(18);
+    });
+  });
   describe("parseLines", () => {
     it("handles example", () => {
       expect(parseLines(readLines(__dirname, "example.txt"))).toEqual({
