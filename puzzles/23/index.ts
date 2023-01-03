@@ -92,18 +92,14 @@ const makeTurn = (elfs: Elf[], direction: Direction): Elf[] => {
     const neighbours = findNeighbours(elfs, ix);
     if (neighbours.length > 0) {
       if (containsNoneOf(neighbours, direction.searchSlots)) {
-        // console.log("propose first " + direction.name);
         proposalsByIndex[ix] = translateElf(elf, direction.name);
       } else if (containsNoneOf(neighbours, direction.next.searchSlots)) {
-        // console.log("propose second" + direction.next.name);
         proposalsByIndex[ix] = translateElf(elf, direction.next.name);
       } else if (containsNoneOf(neighbours, direction.next.next.searchSlots)) {
-        // console.log("propose third " + direction.next.next.name);
         proposalsByIndex[ix] = translateElf(elf, direction.next.next.name);
       } else if (
         containsNoneOf(neighbours, direction.next.next.next.searchSlots)
       ) {
-        // console.log("propose fourth " + direction.next.next.next.name);
         proposalsByIndex[ix] = translateElf(elf, direction.next.next.next.name);
       }
     }
@@ -116,7 +112,6 @@ const makeTurn = (elfs: Elf[], direction: Direction): Elf[] => {
     if (proposalForMe) {
       const id = elfId(proposalForMe);
       if (countByLocation[id] === 1) {
-        // console.log("used a proposal");
         return proposalForMe;
       }
     }
@@ -152,9 +147,6 @@ const calculateScore = (elfs: Elf[]): number => {
     },
     { xMin: Infinity, yMin: Infinity, xMax: 0, yMax: 0 }
   );
-  // console.log(`${xMin},${yMin} - ${xMax},${yMax}`);
-  // console.log(`${xMax - xMin} * ${yMax - yMin}`);
-  // console.log(`elfs count ${elfs.length}`);
   return (xMax - xMin + 1) * (yMax - yMin + 1) - elfs.length;
 };
 export {
