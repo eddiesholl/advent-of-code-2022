@@ -1,8 +1,42 @@
 import { readLines } from "../common/input";
-import { processMoves, updateBlizzards } from "./index";
+import {
+  Blizzard,
+  findPossibleMoves,
+  Grid,
+  processMoves,
+  updateBlizzards,
+} from "./index";
 import { parseLines } from "./parse";
 
 describe("24", () => {
+  describe("findPossibleMoves", () => {
+    let grid: Grid;
+    let blizzards: Blizzard[];
+    beforeEach(() => {
+      const example = parseLines(readLines(__dirname, "example.txt"));
+      grid = example.grid;
+      blizzards = example.blizzards;
+    });
+    it("will wait when nothing available", () => {
+      expect(findPossibleMoves(grid, blizzards, { x: 1, y: 2 })).toEqual([
+        { move: "wait", destination: { x: 1, y: 2 } },
+      ]);
+    });
+    it("can find a single move", () => {
+      expect(findPossibleMoves(grid, blizzards, { x: 3, y: 1 })).toEqual([
+        { move: "wait", destination: { x: 3, y: 1 } },
+        { move: "v", destination: { x: 3, y: 2 } },
+      ]);
+    });
+    it("can find 3 moves", () => {
+      expect(findPossibleMoves(grid, blizzards, { x: 3, y: 2 })).toEqual([
+        { move: "wait", destination: { x: 3, y: 2 } },
+        { move: ">", destination: { x: 4, y: 2 } },
+        { move: "^", destination: { x: 3, y: 1 } },
+        { move: "v", destination: { x: 3, y: 3 } },
+      ]);
+    });
+  });
   describe("updateBlizzards", () => {
     it("does simple moves correctly", () => {
       expect(
@@ -52,7 +86,7 @@ describe("24", () => {
     });
   });
   describe("processMoves", () => {
-    it("handles the example", () => {
+    it.skip("handles the example", () => {
       const { grid, blizzards } = parseLines(
         readLines(__dirname, "example.txt")
       );

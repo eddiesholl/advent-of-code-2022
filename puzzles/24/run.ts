@@ -1,5 +1,7 @@
 import { readLines } from "../common/input";
-import { a } from "./index";
+import { processMoves } from "./index";
+import { parseLines } from "./parse";
 
-const score = a(readLines(__dirname));
-console.log("Score is " + score);
+const { grid, blizzards } = parseLines(readLines(__dirname));
+const score = processMoves(grid, blizzards);
+console.log("Score is " + score.length);
