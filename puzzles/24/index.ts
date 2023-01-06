@@ -107,19 +107,19 @@ const scan = (grid: Grid, state: GameState): Turn[] => {
   let currentBlizzards: Blizzard[] = state.blizzards;
   let t = 0;
   console.dir(grid);
-  renderGrid(grid, currentBlizzards);
+  // renderGrid(grid, currentBlizzards);
 
   while (!success) {
-    console.log("Starting Minute " + t);
-    console.log(currentChoices.length + " choices");
+    // console.log("Starting Minute " + t);
+    // console.log(currentChoices.length + " choices");
     success = currentChoices.find((choice) =>
       locationEquals(choice.player)(grid.end)
     );
     if (success) {
       break;
     }
-    console.log("Just blizzards for t = " + t);
-    renderGrid(grid, currentBlizzards);
+    // console.log("Just blizzards for t = " + t);
+    // renderGrid(grid, currentBlizzards);
     // console.log("Rendering choices");
     // console.dir(currentChoices);
     currentChoices.forEach((choice) => {
@@ -182,6 +182,7 @@ export {
   Direction,
   Blizzard,
   Grid,
+  Turn,
   processMoves,
   updateBlizzards,
   findPossibleMoves,

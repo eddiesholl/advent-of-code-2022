@@ -1,4 +1,4 @@
-import { Blizzard, Grid } from "./index";
+import { Blizzard, Grid, Turn } from "./index";
 import { Location, locationEquals } from "../common/location";
 
 const renderGrid = (grid: Grid, blizzards: Blizzard[], player?: Location) => {
@@ -47,4 +47,11 @@ const renderGrid = (grid: Grid, blizzards: Blizzard[], player?: Location) => {
   console.log(lastLine);
 };
 
-export { renderGrid };
+// Minute 1, move down
+const renderMoves = (moves: Turn[]) => {
+  moves.forEach((m) => {
+    console.log(`Minute ${m.t}, move ${m.move}`);
+  });
+};
+
+export { renderGrid, renderMoves };
