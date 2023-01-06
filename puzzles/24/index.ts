@@ -67,23 +67,27 @@ const findPossibleMoves = (
   currentPlayer: Location
 ) => {
   const { x, y } = currentPlayer;
-  const moves: MoveResult[] = [{ move: "wait", destination: currentPlayer }];
+  const moves: MoveResult[] = [];
 
   const left = { x: x - 1, y };
   const right = { x: x + 1, y };
   const up = { x, y: y - 1 };
   const down = { x, y: y + 1 };
-  if (x > 1 && noBlizzardsAt(blizzards, left)) {
+  const moveDown = { move: "v", destination: down } as MoveResult;
+  if (locationEquals(down)(grid.end)) {
+    return [moveDown];
+  }
+  if (y > 0 && x > 1 && noBlizzardsAt(blizzards, left)) {
     moves.push({ move: "<", destination: left });
   }
-  if (x < grid.width - 2 && noBlizzardsAt(blizzards, right)) {
+  if (y > 0 && x < grid.width - 2 && noBlizzardsAt(blizzards, right)) {
     moves.push({ move: ">", destination: right });
   }
   if (y > 1 && noBlizzardsAt(blizzards, up)) {
     moves.push({ move: "^", destination: up });
   }
   if (y < grid.height - 2 && noBlizzardsAt(blizzards, down)) {
-    moves.push({ move: "v", destination: down });
+    moves.push(moveDown);
   }
   if (moves.length === 0) {
     moves.push({ move: "wait", destination: currentPlayer });
@@ -91,20 +95,22 @@ const findPossibleMoves = (
   return moves;
 };
 const scan = (grid: Grid, state: GameState): Move[] => {
+  // REVISIT: This assumes you can move down straight away
   const root: ChoiceNode = {
     // t: 0,
-    move: "^",
-    player: grid.start,
+    move: "v",
+    player: { x: grid.start.x, y: grid.start.y + 1 },
   };
   let currentChoices = [root];
   let success: ChoiceNode | undefined;
   let currentBlizzards: Blizzard[] = state.blizzards;
   let t = 1;
+  console.dir(grid);
   renderGrid(grid, currentBlizzards);
 
   while (!success) {
-    console.log(t);
-    console.log(currentChoices.length);
+    console.log("Starting Minute " + t);
+    console.log(currentChoices.length + " choices");
     success = currentChoices.find((choice) =>
       locationEquals(choice.player)(grid.end)
     );
@@ -113,7 +119,20 @@ const scan = (grid: Grid, state: GameState): Move[] => {
     }
     currentBlizzards = updateBlizzards(currentBlizzards, grid);
     renderGrid(grid, currentBlizzards);
+    console.log("Rendering choices");
+    console.dir(currentChoices);
     const possibleChoices: ChoiceNode[] = currentChoices.flatMap((choice) => {
+      renderGrid(grid, currentBlizzards, choice.player);
+      // Check for invalid player locations
+      const blizHere = currentBlizzards.filter(
+        (b) =>
+          b.location.x === choice.player.x && b.location.y === choice.player.y
+      );
+      if (blizHere.length > 0) {
+        console.log("blizHere");
+        console.log(choice.player);
+      }
+
       return findPossibleMoves(grid, currentBlizzards, choice.player).map(
         (m) => ({
           t,
@@ -123,7 +142,13 @@ const scan = (grid: Grid, state: GameState): Move[] => {
         })
       );
     });
-    currentChoices = possibleChoices;
+    currentChoices = possibleChoices.filter((value, index, self) => {
+      return (
+        self.findIndex((choice) =>
+          locationEquals(choice.player)(value.player)
+        ) === index
+      );
+    });
     t++;
   }
   const result: Move[] = [];
