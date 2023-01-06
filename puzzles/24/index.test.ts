@@ -9,6 +9,15 @@ import {
 import { parseLines } from "./parse";
 
 describe("24", () => {
+  /**
+ 01234567
+0#.######
+1#>>.<^<#
+2#.<..<<#
+3#>v.><>#
+4#<^v^^>#
+5######.#
+   * */
   describe("findPossibleMoves", () => {
     let grid: Grid;
     let blizzards: Blizzard[];
@@ -22,18 +31,21 @@ describe("24", () => {
         { move: "wait", destination: { x: 1, y: 2 } },
       ]);
     });
+    it("finds nothing when surrounded and can't wait", () => {
+      expect(findPossibleMoves(grid, blizzards, { x: 5, y: 1 })).toEqual([]);
+    });
     it("can find a single move", () => {
       expect(findPossibleMoves(grid, blizzards, { x: 3, y: 1 })).toEqual([
-        { move: "wait", destination: { x: 3, y: 1 } },
         { move: "v", destination: { x: 3, y: 2 } },
+        { move: "wait", destination: { x: 3, y: 1 } },
       ]);
     });
     it("can find 3 moves", () => {
       expect(findPossibleMoves(grid, blizzards, { x: 3, y: 2 })).toEqual([
-        { move: "wait", destination: { x: 3, y: 2 } },
         { move: ">", destination: { x: 4, y: 2 } },
         { move: "^", destination: { x: 3, y: 1 } },
         { move: "v", destination: { x: 3, y: 3 } },
+        { move: "wait", destination: { x: 3, y: 2 } },
       ]);
     });
   });

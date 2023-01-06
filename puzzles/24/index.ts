@@ -89,7 +89,7 @@ const findPossibleMoves = (
   if (y < grid.height - 2 && noBlizzardsAt(blizzards, down)) {
     moves.push(moveDown);
   }
-  if (moves.length === 0) {
+  if (noBlizzardsAt(blizzards, currentPlayer)) {
     moves.push({ move: "wait", destination: currentPlayer });
   }
   return moves;
@@ -120,20 +120,22 @@ const scan = (grid: Grid, state: GameState): Turn[] => {
     }
     console.log("Just blizzards for t = " + t);
     renderGrid(grid, currentBlizzards);
-    console.log("Rendering choices");
-    console.dir(currentChoices);
+    // console.log("Rendering choices");
+    // console.dir(currentChoices);
     currentChoices.forEach((choice) => {
-      renderGrid(grid, currentBlizzards, choice.player);
       // Check for invalid player locations
       const blizHere = currentBlizzards.filter(
         (b) =>
           b.location.x === choice.player.x && b.location.y === choice.player.y
       );
       if (blizHere.length > 0) {
+        renderGrid(grid, currentBlizzards, choice.player);
         console.log(
           "blizHere --------------------------------------------------------------"
         );
         console.log(choice.player);
+        console.log(choice.move);
+        console.log(choice.parent?.player);
       }
     });
 
