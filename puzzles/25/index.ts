@@ -32,9 +32,13 @@ const encode = (n: number): string => {
   let remainder = n;
   let power = 1;
   let carried = 0;
-  while (remainder > 0) {
-    let currentDigit = remainder % 5;
+  console.log("encoding: " + n);
+  while (remainder > 0 || carried > 0) {
+    console.log("position " + power);
+    let currentDigit = (remainder % 5) + carried;
+    console.log(currentDigit);
     if ([0, 1, 2].includes(currentDigit)) {
+      console.log("0,1,2");
       result = currentDigit + result;
       carried = 0;
     } else {
@@ -47,9 +51,14 @@ const encode = (n: number): string => {
         result = "-" + result;
         currentDigit = -1;
       }
+      if (currentDigit === 5) {
+        result = "0" + result;
+      }
     }
     const currentPower = Math.pow(5, power);
-    remainder = Math.floor(remainder / currentPower) + carried;
+    console.log("currentPower " + currentPower);
+    remainder = Math.floor(n / currentPower);
+    console.log("remainder " + remainder);
     power++;
   }
   return result;
