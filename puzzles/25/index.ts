@@ -19,15 +19,37 @@ const decode = (encoded: string): number => {
     })
     .reduce(sumValues);
 };
+/**
+ * Encode regular numbers to a string, using a base 5, and only allowing values 2,1,0, - for -1 and = for -2
+ * Example: 15 => 1=0 - 1*25 + (-2*5) + (0*1)
+ * */
+type ExpressableValue = [number, number];
+const encodeMap: Record<number, ExpressableValue> = {
+  3: [-1, 1],
+};
 const encode = (n: number): string => {
   let result = "";
   let remainder = n;
-  let power = 0;
+  let power = 1;
+  let carried = 0;
   while (remainder > 0) {
-    let current = remainder % 5;
-    const divisor = Math.pow(5, power);
-    result = current * divisor + result;
-    remainder = Math.floor((remainder - current) / divisor);
+    let currentDigit = remainder % 5;
+    if ([0, 1, 2].includes(currentDigit)) {
+      result = currentDigit + result;
+      carried = 0;
+    } else {
+      carried = 1;
+      if (currentDigit === 3) {
+        result = "=" + result;
+        currentDigit = -2;
+      }
+      if (currentDigit === 4) {
+        result = "-" + result;
+        currentDigit = -1;
+      }
+    }
+    const currentPower = Math.pow(5, power);
+    remainder = Math.floor(remainder / currentPower) + carried;
     power++;
   }
   return result;
