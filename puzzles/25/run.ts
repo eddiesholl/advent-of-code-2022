@@ -1,5 +1,5 @@
 import { readLines } from "../common/input";
-import { a } from "./index";
+import { sumSnafus } from "./index";
 
-const score = a(readLines(__dirname));
-console.log("Score is " + score);
+const encoded = sumSnafus(readLines(__dirname));
+console.log("Encoded result is " + encoded);

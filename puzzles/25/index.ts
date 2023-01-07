@@ -17,7 +17,7 @@ const decode = (encoded: string): number => {
       const base = decodeBaseValue(c);
       return base * Math.pow(5, ix);
     })
-    .reduce(sumValues);
+    .reduce(sumValues, 0);
 };
 /**
  * Encode regular numbers to a string, using a base 5, and only allowing values 2,1,0, - for -1 and = for -2
@@ -32,13 +32,9 @@ const encode = (n: number): string => {
   let remainder = n;
   let power = 1;
   let carried = 0;
-  console.log("encoding: " + n);
   while (remainder > 0 || carried > 0) {
-    console.log("position " + power);
     let currentDigit = (remainder % 5) + carried;
-    console.log(currentDigit);
     if ([0, 1, 2].includes(currentDigit)) {
-      console.log("0,1,2");
       result = currentDigit + result;
       carried = 0;
     } else {
@@ -56,11 +52,14 @@ const encode = (n: number): string => {
       }
     }
     const currentPower = Math.pow(5, power);
-    console.log("currentPower " + currentPower);
     remainder = Math.floor(n / currentPower);
-    console.log("remainder " + remainder);
     power++;
   }
   return result;
 };
-export { decode, encode };
+const sumSnafus = (values: string[]): string => {
+  const decodedValues = values.map(decode);
+  const sum = decodedValues.reduce(sumValues, 0);
+  return encode(sum);
+};
+export { decode, encode, sumSnafus };

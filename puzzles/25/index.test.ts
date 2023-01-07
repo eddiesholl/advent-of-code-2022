@@ -1,6 +1,12 @@
-import { decode, encode } from "./index";
+import { readLines } from "../common/input";
+import { decode, encode, sumSnafus } from "./index";
 
 describe("25", () => {
+  describe("sumSnafus", () => {
+    it("handles the example correctly", () => {
+      expect(sumSnafus(readLines(__dirname, "example.txt"))).toEqual("2=-1=0");
+    });
+  });
   describe("value conversion", () => {
     const primitiveValues: readonly [number, string][] = [
       [1, "1"],
