@@ -1,46 +1,55 @@
-interface MaxElf {
-  number: Number;
-  calorieCount: Number;
+import { sum } from "../common/math";
+
+interface Elf {
+  number: number;
+  calorieCount: number;
 }
-
-const findMaxElf = (lines: string[]): MaxElf => {
-  const result = lines.reduce(
-    (prev, curr) => {
-      if (curr === "") {
-        return {
-          ...prev,
-          currentElfNumber: prev.currentElfNumber + 1,
-          currentCalories: 0,
-        };
-      } else {
-        const currentCalorieValue = parseInt(curr);
-        const currentElfCalories = prev.currentCalories + currentCalorieValue;
-
-        if (currentElfCalories > prev.calorieCount) {
-          return {
-            ...prev,
-            number: prev.currentElfNumber,
-            currentCalories: currentElfCalories,
-            calorieCount: currentElfCalories,
-          };
-        } else {
-          return {
-            ...prev,
-            currentCalories: currentElfCalories,
-          };
-        }
-      }
-    },
-    {
-      currentElfNumber: 1,
-      number: 1,
-      currentCalories: 0,
-      calorieCount: 0,
-    }
-  );
-  return { number: result.number, calorieCount: result.calorieCount };
+type ElfAccumulator = {
+  currentElf: Elf;
+  elfs: Elf[];
 };
-const displayElf = (elf: MaxElf) =>
+
+const calculateElfs = (lines: string[]): Elf[] => {
+  const firstElf = { number: 1, calorieCount: 0 };
+  const acc: ElfAccumulator = {
+    currentElf: firstElf,
+    elfs: [firstElf],
+  };
+  const result = lines.reduce((prev, curr) => {
+    let last: Elf | undefined = prev.slice(-1)[0];
+    if (curr === "") {
+      const newElf = {
+        number: (last === undefined ? 0 : last.number) + 1,
+        calorieCount: 0,
+      };
+      return prev.concat(newElf);
+    } else {
+      const currentCalorieValue = parseInt(curr);
+      if (last === undefined) {
+        last = { number: 1, calorieCount: 0 };
+        prev.push(last);
+      }
+      last.calorieCount += currentCalorieValue;
+      return prev;
+    }
+  }, [] as Elf[]);
+
+  return result.sort((a, b) => b.calorieCount - a.calorieCount);
+};
+
+const findTop3 = (lines: string[]): number => {
+  const elfs = calculateElfs(lines);
+  const topElfs = elfs.slice(0, 3);
+  console.log(topElfs);
+  return sum(topElfs.map((e) => e.calorieCount));
+};
+
+const findMaxElf = (lines: string[]): Elf => {
+  const elfs = calculateElfs(lines);
+  const result = elfs[0];
+  return result;
+};
+const displayElf = (elf: Elf) =>
   console.log(`Elf ${elf.number} has the most calories, ${elf.calorieCount}`);
 
-export { findMaxElf, displayElf };
+export { findMaxElf, displayElf, findTop3 };
