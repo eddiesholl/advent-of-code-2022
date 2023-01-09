@@ -1,4 +1,4 @@
-import { notEmpty } from "../common/array";
+import { findIntersection, notEmpty } from "../common/array";
 import { sum, sumValues } from "../common/math";
 
 const processPacks = (lines: string[]) =>
@@ -48,9 +48,6 @@ const createChunks = (lines: string[]): Chunk[] => {
   });
   return result;
 };
-// TODO: Pull out as common func
-const findIntersection = (a: number[], b: number[]): number[] =>
-  a.filter((i) => b.includes(i));
 const processChunk = (chunk: Chunk): [string, number] => {
   const [first, second, third] = chunk;
   const common1 = findCharOverlaps(first, second);

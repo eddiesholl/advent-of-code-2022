@@ -23,3 +23,6 @@ export const containsNoneOf = <T>(
   searchTarget: T[],
   disallowedItems: T[]
 ): boolean => searchTarget.every((i) => !disallowedItems.includes(i));
+
+export const findIntersection = <T>(a: T[], b: T[]): T[] =>
+  a.filter((i) => b.includes(i));
