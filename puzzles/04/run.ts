@@ -1,5 +1,9 @@
 import { readLines } from "../common/input";
-import { a } from "./index";
+import { a, rangeLineOverlaps } from "./index";
 
-const score = a(readLines(__dirname));
+// Part 1
+// const score = a(readLines(__dirname));
+
+// Part 2
+const score = readLines(__dirname).filter(rangeLineOverlaps);
 console.log("Score is " + score.length);
