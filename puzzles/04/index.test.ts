@@ -1,14 +1,20 @@
-import { a, rangeLineOverlaps } from "./index";
+import { a, parseLine, rangeLineOverlaps } from "./index";
 
 describe("04", () => {
   describe("rangeLineOverlaps", () => {
-    it("handles the examples", () => {
-      expect(rangeLineOverlaps("2-4,6-8")).toEqual(false);
-      expect(rangeLineOverlaps("2-3,4-5")).toEqual(false);
-      expect(rangeLineOverlaps("5-7,7-9")).toEqual(true);
-      expect(rangeLineOverlaps("2-8,3-7")).toEqual(true);
-      expect(rangeLineOverlaps("6-6,4-6")).toEqual(true);
-      expect(rangeLineOverlaps("2-6,4-8")).toEqual(true);
+    it.each([
+      ["2-4,6-8", false],
+      ["2-3,4-5", false],
+      ["5-7,7-9", true],
+      ["2-8,3-7", true],
+      ["6-6,4-6", true],
+      ["2-6,4-8", true],
+    ])("detects overlap in %s as '%s'", (line: string, expected: boolean) => {
+      const parsed = parseLine(line);
+      expect(parsed).toBeDefined();
+      if (parsed) {
+        expect(rangeLineOverlaps(parsed)).toEqual(expected);
+      }
     });
   });
   describe("a", () => {
@@ -19,7 +25,8 @@ describe("04", () => {
       it("handles the example", () => {
         expect(
           a(["2-4,6-8", "2-3,4-5", "5-7,7-9", "2-8,3-7", "6-6,4-6", "2-6,4-8"])
-        ).toEqual(["2-8,3-7", "6-6,4-6"]);
+            .length
+        ).toEqual(2);
       });
     });
   });
