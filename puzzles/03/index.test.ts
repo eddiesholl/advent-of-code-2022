@@ -3,9 +3,28 @@ import {
   findFirstCharOverlap,
   scorePack,
   slicePack,
+  createChunks,
+  processChunk,
 } from "./index";
 
 describe("03", () => {
+  describe("part 2", () => {
+    describe("processChunk", () => {
+      it("can find a single unique char", () => {
+        expect(processChunk(["abc", "cde", "xxc"])).toEqual(["abc", 2]);
+      });
+    });
+    describe("createChunks", () => {
+      it("creates basic groups", () => {
+        expect(
+          createChunks(["000", "111", "222", "333", "444", "555"])
+        ).toEqual([
+          ["000", "111", "222"],
+          ["333", "444", "555"],
+        ]);
+      });
+    });
+  });
   describe("a", () => {
     describe("happy paths", () => {
       it("handles no lines", () => {

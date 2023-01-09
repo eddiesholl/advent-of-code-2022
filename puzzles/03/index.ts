@@ -51,19 +51,25 @@ const createChunks = (lines: string[]): Chunk[] => {
 // TODO: Pull out as common func
 const findIntersection = (a: number[], b: number[]): number[] =>
   a.filter((i) => b.includes(i));
-const processChunk = (chunk: Chunk): number => {
+const processChunk = (chunk: Chunk): [string, number] => {
   const [first, second, third] = chunk;
   const common1 = findCharOverlaps(first, second);
-  const common2 = findCharOverlaps(second, third);
+  const common2 = findCharOverlaps(first, third);
   const commonIndex = findIntersection(common1, common2)[0];
-  return commonIndex ? scoreChar(first, commonIndex) : 0;
+  return [first, commonIndex];
 };
 const processPackGroups = (lines: string[]): number =>
-  sum(createChunks(lines).map(processChunk));
+  sum(
+    createChunks(lines)
+      .map(processChunk)
+      .map(([str, ix]) => scoreChar(str, ix))
+  );
 export {
   processPacks,
   processPackGroups,
+  processChunk,
   findFirstCharOverlap,
   scorePack,
   slicePack,
+  createChunks,
 };
