@@ -1,5 +1,5 @@
 import { notEmpty } from "../common/array";
-import { sumValues } from "../common/math";
+import { sum, sumValues } from "../common/math";
 
 const processPacks = (lines: string[]) =>
   lines.map(scorePack).reduce(sumValues, 0);
@@ -33,7 +33,37 @@ const scorePack = (line: string): number => {
   const overlapIndex = findFirstCharOverlap(str1, str2);
   return overlapIndex !== undefined ? scoreChar(str1, overlapIndex) : 0;
 };
-const processPackGroups = (lines: string[]): number => {
-  return 0;
+
+// Part 2
+type Chunk = [string, string, string];
+const createChunks = (lines: string[]): Chunk[] => {
+  const result: Chunk[] = [];
+  let chunk: string[] = [];
+  lines.forEach((line, ix) => {
+    chunk.push(line);
+    if (chunk.length === 3) {
+      result.push(chunk as Chunk);
+      chunk = [];
+    }
+  });
+  return result;
 };
-export { processPacks, findFirstCharOverlap, scorePack, slicePack };
+// TODO: Pull out as common func
+const findIntersection = (a: number[], b: number[]): number[] =>
+  a.filter((i) => b.includes(i));
+const processChunk = (chunk: Chunk): number => {
+  const [first, second, third] = chunk;
+  const common1 = findCharOverlaps(first, second);
+  const common2 = findCharOverlaps(second, third);
+  const commonIndex = findIntersection(common1, common2)[0];
+  return commonIndex ? scoreChar(first, commonIndex) : 0;
+};
+const processPackGroups = (lines: string[]): number =>
+  sum(createChunks(lines).map(processChunk));
+export {
+  processPacks,
+  processPackGroups,
+  findFirstCharOverlap,
+  scorePack,
+  slicePack,
+};

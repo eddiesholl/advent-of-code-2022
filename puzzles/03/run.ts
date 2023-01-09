@@ -1,5 +1,9 @@
 import { readLines } from "../common/input";
-import { a } from "./index";
+import { processPackGroups, processPacks } from "./index";
 
-const score = a(readLines(__dirname));
+// Part 1
+// const score = processPacks(readLines(__dirname));
+
+// Part 2
+const score = processPackGroups(readLines(__dirname));
 console.log("Score is " + score);
