@@ -1,4 +1,9 @@
-import { processPacks, findFirstOverlap, scorePack, slicePack } from "./index";
+import {
+  processPacks,
+  findFirstCharOverlap,
+  scorePack,
+  slicePack,
+} from "./index";
 
 describe("03", () => {
   describe("a", () => {
@@ -35,18 +40,18 @@ describe("03", () => {
     });
   });
 
-  describe("findFirstOverlap", () => {
+  describe("findFirstCharOverlap", () => {
     it("handles empty arrays", () => {
-      expect(findFirstOverlap("", "")).toEqual(undefined);
+      expect(findFirstCharOverlap("", "")).toEqual(undefined);
     });
 
     it("handles a simple overlap", () => {
-      expect(findFirstOverlap("a", "a")).toEqual(0);
+      expect(findFirstCharOverlap("a", "a")).toEqual(0);
     });
     it("handles item 2 from the example", () => {
-      expect(findFirstOverlap("jqHRNqRjqzjGDLGL", "rsFMfFZSrLrFZsSL")).toEqual(
-        13
-      );
+      expect(
+        findFirstCharOverlap("jqHRNqRjqzjGDLGL", "rsFMfFZSrLrFZsSL")
+      ).toEqual(13);
     });
   });
 
