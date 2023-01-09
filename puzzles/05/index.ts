@@ -91,10 +91,36 @@ const renderMove = (move: Move): void => {
   console.log(`move ${move.n} from ${move.from} to ${move.to}`);
 };
 
+// Part 2
+const processMovesPart2 = (
+  startingStack: StackStore,
+  moves: (Move | undefined)[]
+): StackStore => {
+  const workingStack = {
+    ...startingStack,
+  };
+  // renderStack(workingStack);
+
+  moves.forEach((move) => {
+    if (move === undefined) {
+      return;
+    }
+    // renderMove(move);
+    // console.log();
+    const moving = workingStack[move.from].slice(0, move.n);
+
+    workingStack[move.from] = workingStack[move.from].slice(move.n);
+    workingStack[move.to] = moving.concat(workingStack[move.to]);
+    // renderStack(workingStack);
+  });
+  return workingStack;
+};
+
 export {
   parseStackLine,
   parseStacks,
   parseMoves,
   processMoves,
   selectFirstItems,
+  processMovesPart2,
 };

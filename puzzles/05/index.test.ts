@@ -2,6 +2,7 @@ import {
   Move,
   parseStackLine,
   processMoves,
+  processMovesPart2,
   selectFirstItems,
   StackStore,
 } from "./index";
@@ -113,6 +114,59 @@ describe("05", () => {
     });
   });
 
+  describe("processMovesPart2", () => {
+    describe("example", () => {
+      let start: StackStore;
+      let move1: Move;
+      let move2: Move;
+      let move3: Move;
+      let move4: Move;
+      beforeEach(() => {
+        start = {
+          1: ["N", "Z"],
+          2: ["D", "C", "M"],
+          3: ["P"],
+        };
+        move1 = { n: 1, from: 2, to: 1 };
+        move2 = { n: 3, from: 1, to: 3 };
+        move3 = { n: 2, from: 2, to: 1 };
+        move4 = { n: 1, from: 1, to: 2 };
+      });
+
+      it("handles the first move", () => {
+        expect(processMovesPart2(start, [move1])).toEqual({
+          1: ["D", "N", "Z"],
+          2: ["C", "M"],
+          3: ["P"],
+        });
+      });
+
+      it("handles the second move", () => {
+        expect(processMovesPart2(start, [move1, move2])).toEqual({
+          1: [],
+          2: ["C", "M"],
+          3: ["D", "N", "Z", "P"],
+        });
+      });
+
+      it("handles the third move", () => {
+        expect(processMovesPart2(start, [move1, move2, move3])).toEqual({
+          1: ["C", "M"],
+          2: [],
+          3: ["D", "N", "Z", "P"],
+        });
+      });
+
+      it("handles the full example", () => {
+        const moves = [move1, move2, move3, move4];
+        expect(processMovesPart2(start, moves)).toEqual({
+          1: ["M"],
+          2: ["C"],
+          3: ["D", "N", "Z", "P"],
+        });
+      });
+    });
+  });
   describe("selectFirstItems", () => {
     it("works", () => {
       expect(
