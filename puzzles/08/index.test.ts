@@ -1,6 +1,10 @@
-import { parseLines, findHiddenTrees } from "./index";
+import { parseLines, findHiddenTrees, TreeGrid, scenicScore } from "./index";
 
 describe("08", () => {
+  let exampleParsed: TreeGrid;
+  beforeEach(() => {
+    exampleParsed = parseLines(["30373", "25512", "65332", "33549", "35390"]);
+  });
   describe("findHiddenTrees", () => {
     describe("happy paths", () => {
       it("handles one tree", () => {
@@ -18,11 +22,7 @@ describe("08", () => {
         ]);
       });
       it("handles the example", () => {
-        expect(
-          findHiddenTrees(
-            parseLines(["30373", "25512", "65332", "33549", "35390"])
-          )
-        ).toEqual([
+        expect(findHiddenTrees(exampleParsed)).toEqual([
           { x: 3, y: 1, height: 1 },
           { x: 2, y: 2, height: 3 },
           { x: 1, y: 3, height: 3 },
@@ -31,17 +31,24 @@ describe("08", () => {
       });
     });
   });
+  describe("Part 2", () => {
+    describe("scenicScore", () => {
+      it("matches example 1", () => {
+        expect(scenicScore({ x: 2, y: 1, height: 5 }, exampleParsed)).toEqual(
+          4
+        );
+      });
+      it("matches example 2", () => {
+        expect(scenicScore({ x: 2, y: 3, height: 5 }, exampleParsed)).toEqual(
+          8
+        );
+      });
+    });
+  });
   describe("parseLines", () => {
     it("handles the example", () => {
-      const parsedLines = parseLines([
-        "30373",
-        "25512",
-        "65332",
-        "33549",
-        "35390",
-      ]);
-      expect(parsedLines.length).toEqual(5);
-      expect(parsedLines[0].length).toEqual(5);
+      expect(exampleParsed.length).toEqual(5);
+      expect(exampleParsed[0].length).toEqual(5);
     });
   });
 });

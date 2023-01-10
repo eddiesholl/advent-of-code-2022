@@ -1,3 +1,5 @@
+import { product } from "../common/math";
+
 type Location = {
   x: number;
   y: number;
@@ -14,12 +16,17 @@ const parseLine = (line: string, y: number): TreeRow =>
 const parseLines = (lines: string[]): TreeGrid => {
   return lines.map(parseLine).filter((row) => row.length > 0);
 };
-const isTreeTallerIn =
+type SearchResult = {
+  distance: number;
+  edge: boolean;
+};
+const findTreeTallerIn =
   (mover: (location: Location) => Location) =>
-  (startTree: Tree, treeGrid: TreeGrid): boolean => {
+  (startTree: Tree, treeGrid: TreeGrid): SearchResult => {
     const maxX = treeGrid[0].length;
     const maxY = treeGrid.length;
     let currentLocation: Location = mover(startTree);
+    let distance = 1;
     while (
       currentLocation.x >= 0 &&
       currentLocation.x < maxX &&
@@ -31,37 +38,39 @@ const isTreeTallerIn =
         console.log("Missing tree at " + JSON.stringify(currentLocation));
       }
       if (currentTree.height >= startTree.height) {
-        return true;
+        return { distance, edge: false };
       }
       currentLocation = mover(currentLocation);
+      distance++;
     }
-    return false;
+    // distance - 1 to wind back the last iteration of the loop, taking us out of bounds
+    return { distance: distance - 1, edge: true };
   };
-const isTreeTallerNorth = isTreeTallerIn((loc) => ({
+const findTreeTallerNorth = findTreeTallerIn((loc) => ({
   x: loc.x,
   y: loc.y - 1,
 }));
-const isTreeTallerSouth = isTreeTallerIn((loc) => ({
+const findTreeTallerSouth = findTreeTallerIn((loc) => ({
   x: loc.x,
   y: loc.y + 1,
 }));
-const isTreeTallerEast = isTreeTallerIn((loc) => ({
+const findTreeTallerEast = findTreeTallerIn((loc) => ({
   x: loc.x + 1,
   y: loc.y,
 }));
-const isTreeTallerWest = isTreeTallerIn((loc) => ({
+const findTreeTallerWest = findTreeTallerIn((loc) => ({
   x: loc.x - 1,
   y: loc.y,
 }));
 const isTreeHidden = (tree: Tree, treeGrid: TreeGrid): boolean => {
-  const north = isTreeTallerNorth(tree, treeGrid);
-  const south = isTreeTallerSouth(tree, treeGrid);
-  const east = isTreeTallerEast(tree, treeGrid);
-  const west = isTreeTallerWest(tree, treeGrid);
+  const north = findTreeTallerNorth(tree, treeGrid);
+  const south = findTreeTallerSouth(tree, treeGrid);
+  const east = findTreeTallerEast(tree, treeGrid);
+  const west = findTreeTallerWest(tree, treeGrid);
   // console.log(tree);
   // console.log(`north:${north} - south:${south} - east:${east} - west:${west}`);
 
-  return north && south && east && west;
+  return [north, south, east, west].every((r) => r.edge === false);
 };
 const findHiddenTrees = (treeGrid: TreeGrid): Tree[] => {
   const hiddenTrees: Tree[] = [];
@@ -75,4 +84,36 @@ const findHiddenTrees = (treeGrid: TreeGrid): Tree[] => {
 
   return hiddenTrees;
 };
-export { parseLines, findHiddenTrees };
+
+// Part 2
+const scenicScore = (tree: Tree, treeGrid: TreeGrid): number => {
+  const north = findTreeTallerNorth(tree, treeGrid);
+  const south = findTreeTallerSouth(tree, treeGrid);
+  const east = findTreeTallerEast(tree, treeGrid);
+  const west = findTreeTallerWest(tree, treeGrid);
+
+  // console.log(
+  //   `${north.distance} ${south.distance} ${east.distance} ${west.distance}`
+  // );
+  // console.log(`${north.edge} ${south.edge} ${east.edge} ${west.edge}`);
+
+  return product([north, south, east, west].map((r) => r.distance));
+};
+const findMostScenicTree = (treeGrid: TreeGrid): number => {
+  let maxScenicScore = 0;
+  treeGrid.forEach((row, y) => {
+    row.forEach((tree, x) => {
+      maxScenicScore = Math.max(maxScenicScore, scenicScore(tree, treeGrid));
+    });
+  });
+
+  return maxScenicScore;
+};
+
+export {
+  parseLines,
+  findHiddenTrees,
+  TreeGrid,
+  scenicScore,
+  findMostScenicTree,
+};
