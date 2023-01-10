@@ -1,30 +1,24 @@
-const findMarkerEnd = (line: string): number => {
-  let head = line.slice(0, 4);
-  let tail = line.slice(4);
-  let charCounter = 4;
-  while (hasDupes(head) && tail.length > 4) {
-    head = head.slice(1).concat(tail[0]);
-    tail = tail.slice(1);
-    charCounter++;
-  }
-  return charCounter;
-};
+const findStartUniqueSequence =
+  (seqLength: number) =>
+  (line: string): number => {
+    let head = line.slice(0, seqLength);
+    let tail = line.slice(seqLength);
+    let charCounter = seqLength;
+    while (hasDupes(head) && tail.length > 0) {
+      head = head.slice(1).concat(tail[0]);
+      tail = tail.slice(1);
+      charCounter++;
+    }
+    return charCounter;
+  };
+
+const findMarkerEnd = findStartUniqueSequence(4);
 
 // Part 2
 // mjqjpqmgbljsphdztnvjfqwrcgsmlb
 // 123456789012345678901234567890
 // ...jpqmgbljsphdztnv
-const findMessageEnd = (line: string): number => {
-  let head = line.slice(0, 14);
-  let tail = line.slice(14);
-  let charCounter = 14;
-  while (hasDupes(head) && tail.length > 0) {
-    head = head.slice(1).concat(tail[0]);
-    tail = tail.slice(1);
-    charCounter++;
-  }
-  return charCounter;
-};
+const findMessageEnd = findStartUniqueSequence(14);
 
 const hasDupes = (line: string): boolean => {
   const arr = line.split("");
