@@ -1,6 +1,7 @@
 import {
   calculateDirectorySize,
   Directory,
+  findDeleteTarget,
   findSmallDirectories,
   parseCommands,
   parseLine,
@@ -118,6 +119,15 @@ describe("07", () => {
       expect(smallDirs.length).toEqual(2);
       expect(smallDirs.map((d) => d.name)).toEqual(["e", "a"]);
       expect(smallDirs.map((d) => d.totalSize)).toEqual([584, 94853]);
+    });
+  });
+  describe("findDeleteTarget", () => {
+    it("works for the example", () => {
+      const dir = parseCommands(exampleCommands);
+      calculateDirectorySize(dir);
+      const deleteTarget = findDeleteTarget(dir);
+      expect(deleteTarget?.name).toEqual("d");
+      expect(deleteTarget?.totalSize).toEqual(24933642);
     });
   });
 });

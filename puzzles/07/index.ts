@@ -1,4 +1,4 @@
-import { sumValues } from "../common/math";
+import { sum, sumValues } from "../common/math";
 
 export type File = {
   name: string;
@@ -111,10 +111,27 @@ const findSmallDirectories = (directory: Directory): Directory[] => {
   }
   return smallChildren;
 };
+
+// Part 2
+const findDirectories = (directory: Directory): Directory[] => {
+  return [directory].concat(directory.children.flatMap(findDirectories));
+};
+const findDeleteTarget = (directory: Directory): Directory | undefined => {
+  const allDirectories = findDirectories(directory).sort(
+    (a, b) => (a.totalSize ?? 0) - (b.totalSize ?? 0)
+  );
+  // console.log(allDirectories);
+  const onDisk = allDirectories.slice(-1)[0].totalSize ?? 0;
+  const unused = 70000000 - onDisk;
+  const minDelete = 30000000 - unused;
+  // Iterate from smallest ot largest, finding the first that is big enough
+  return allDirectories.find((d) => d.totalSize && d.totalSize > minDelete);
+};
 export {
   parseCommands,
   parseLine,
   Directory,
   findSmallDirectories,
   calculateDirectorySize,
+  findDeleteTarget,
 };
