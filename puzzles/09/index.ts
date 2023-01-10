@@ -98,4 +98,26 @@ const processMoves =
     });
     return tailLocs.size;
   };
-export { isNextNearPrevious, movePiecesSingle, parseMoves, processMoves2Knots };
+
+// Part 2
+const processMoves10Knots = (moves: Move[]) => {
+  const tail = { x: 0, y: 0 };
+  const nine = { x: 0, y: 0, next: tail };
+  const eight = { x: 0, y: 0, next: nine };
+  const seven = { x: 0, y: 0, next: eight };
+  const six = { x: 0, y: 0, next: seven };
+  const five = { x: 0, y: 0, next: six };
+  const four = { x: 0, y: 0, next: five };
+  const three = { x: 0, y: 0, next: four };
+  const two = { x: 0, y: 0, next: three };
+  const head = { x: 0, y: 0, next: two };
+  const rope = { head, tail };
+  return processMoves(rope)(moves);
+};
+export {
+  isNextNearPrevious,
+  movePiecesSingle,
+  parseMoves,
+  processMoves2Knots,
+  processMoves10Knots,
+};

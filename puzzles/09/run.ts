@@ -1,5 +1,9 @@
 import { readLines } from "../common/input";
-import { parseMoves, processMoves2Knots } from "./index";
+import { parseMoves, processMoves10Knots, processMoves2Knots } from "./index";
 
-const score = processMoves2Knots(parseMoves(readLines(__dirname)));
+// Part 1
+// const score = processMoves2Knots(parseMoves(readLines(__dirname)));
+
+// Part 2
+const score = processMoves10Knots(parseMoves(readLines(__dirname)));
 console.log("Score is " + score);
