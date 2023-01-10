@@ -1,6 +1,25 @@
-import { findMarkerEnd, hasDupes } from "./index";
+import { findMarkerEnd, findMessageEnd, hasDupes } from "./index";
 
 describe("06", () => {
+  describe("findMessageEnd", () => {
+    describe("examples", () => {
+      it("example 0", () => {
+        expect(findMessageEnd("mjqjpqmgbljsphdztnvjfqwrcgsmlb")).toEqual(19);
+      });
+      it("example 1", () => {
+        expect(findMessageEnd("bvwbjplbgvbhsrlpgdmjqwftvncz")).toEqual(23);
+      });
+      it("example 2", () => {
+        expect(findMessageEnd("nppdvjthqldpwncqszvftbrmjlhg")).toEqual(23);
+      });
+      it("example 3", () => {
+        expect(findMessageEnd("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg")).toEqual(29);
+      });
+      it("example 4", () => {
+        expect(findMessageEnd("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw")).toEqual(26);
+      });
+    });
+  });
   describe("findMarkerEnd", () => {
     describe("examples", () => {
       it("example 1", () => {
