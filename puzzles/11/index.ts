@@ -44,7 +44,9 @@ const applyMonkeyModifier = (monkey: Monkey, worry: number): number =>
  * new value is 885, modulo 11 yields a value of 5
  * */
 const normaliseWorry = (monkey: Monkey, worry: number): number => {
-  return worry;
+  const modifiedWorry = applyMonkeyModifier(monkey, worry);
+  const remainder = modifiedWorry % monkey.test;
+  return remainder;
 };
 const processRound = (
   monkeys: Monkey[],
@@ -59,10 +61,16 @@ const processRound = (
     const startedWith = gameState[monkey.name];
     // console.log(`monkey ${monkey.name}`);
     // console.log(startedWith);
+    // console.log(nextState[monkey.name]);
     startedWith.forEach((n) => {
       const withWorry = applyMonkeyModifier(monkey, n);
       const bored = enablePart2 ? withWorry : Math.floor(withWorry / 3);
       const monkeyPassCheck = bored % monkey.test;
+      // console.log(
+      //   monkeyPassCheck === 0
+      //     ? `0, ${monkey.ifTrue}`
+      //     : `${monkeyPassCheck}, ${monkey.ifFalse}`
+      // );
       // console.log(
       //   `n ${n}, operand ${monkey.operand}, opValue ${monkey.operationValue}`
       // );
@@ -71,8 +79,10 @@ const processRound = (
       // );
       const targetMonkey =
         monkeysByName[monkeyPassCheck === 0 ? monkey.ifTrue : monkey.ifFalse];
-      const normalisedWorry = normaliseWorry(targetMonkey, bored);
-      nextState[targetMonkey.name].push(normalisedWorry);
+      const worryToPass = enablePart2
+        ? normaliseWorry(targetMonkey, bored)
+        : bored;
+      nextState[targetMonkey.name].push(worryToPass);
       monkey.inspections = monkey.inspections + 1;
     });
     nextState[monkey.name] = [];

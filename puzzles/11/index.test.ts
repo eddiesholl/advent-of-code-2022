@@ -52,15 +52,15 @@ describe("11", () => {
       expect(nextState[3]).toEqual([]);
     });
   });
-  describe.skip("part 2", () => {
+  describe("part 2", () => {
     let exampleMonkeyInput: Monkey[];
     let initialGameState: GameState;
     beforeEach(() => {
       exampleMonkeyInput = parseInput(readLines(__dirname, "example.txt"));
       initialGameState = createGameState(exampleMonkeyInput);
     });
-    describe("processMoves", () => {
-      it("passes example with 1 turn", () => {
+    describe.skip("processMoves", () => {
+      it.only("passes example with 1 turn", () => {
         const result = processRounds(exampleMonkeyInput, true, 1);
         expect(
           result.map((m) => ({ name: m.name, inspections: m.inspections }))
@@ -71,7 +71,7 @@ describe("11", () => {
           { name: 3, inspections: 6 },
         ]);
       });
-      it("passes example with 20 turns", () => {
+      it.only("passes example with 20 turns", () => {
         const result = processRounds(exampleMonkeyInput, true, 20);
         expect(
           result.map((m) => ({ name: m.name, inspections: m.inspections }))
