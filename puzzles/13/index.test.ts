@@ -1,5 +1,10 @@
 import { readLines } from "../common/input";
-import { checkPackets, comparePacketItems, parseLines } from "./index";
+import {
+  checkPackets,
+  comparePacketItems,
+  parseLines,
+  sortPackets,
+} from "./index";
 
 describe("13", () => {
   describe("comparePacketItems", () => {
@@ -87,6 +92,34 @@ describe("13", () => {
           first: [1, [2, [3, [4, [5, 6, 7]]]], 8, 9],
           second: [1, [2, [3, [4, [5, 6, 0]]]], 8, 9],
         },
+      ]);
+    });
+  });
+
+  describe("sortPackets", () => {
+    it("handles the example", () => {
+      const result = sortPackets(
+        parseLines(readLines(__dirname, "example.txt"))
+      );
+      expect(result).toEqual([
+        [],
+        [[]],
+        [[[]]],
+        [1, 1, 3, 1, 1],
+        [1, 1, 5, 1, 1],
+        [[1], [2, 3, 4]],
+        [1, [2, [3, [4, [5, 6, 0]]]], 8, 9],
+        [1, [2, [3, [4, [5, 6, 7]]]], 8, 9],
+        [[1], 4],
+        [[2]],
+        [3],
+        [[4, 4], 4, 4],
+        [[4, 4], 4, 4, 4],
+        [[6]],
+        [7, 7, 7],
+        [7, 7, 7, 7],
+        [[8, 7, 6]],
+        [9],
       ]);
     });
   });

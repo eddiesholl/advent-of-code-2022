@@ -1,4 +1,5 @@
 type PacketItem = number | PacketItem[];
+const isNumberPacket = (p: PacketItem): p is number => typeof p === "number";
 type Packet = PacketItem[];
 type PacketPair = {
   name: number;
@@ -90,5 +91,30 @@ const checkPackets = (packets: PacketPair[]): number[] => {
     .filter((pp) => comparePacketItems(pp.first, pp.second, 0) === true)
     .map((p) => p.name);
 };
-const b = () => void 0;
-export { parseLines, checkPackets, comparePacketItems };
+
+// Part 2
+const sortPackets = (packets: PacketPair[]): Packet[] => {
+  const extras = [[[2]], [[6]]];
+  const allPackets = packets.flatMap((p) => [p.first, p.second]).concat(extras);
+  allPackets.sort((a, b) => {
+    const result = comparePacketItems(a, b);
+    return result === true ? -1 : result === false ? 1 : 0;
+  });
+  return allPackets;
+};
+const findDivider = (n: number) => (p: Packet) =>
+  p.length === 1 && !isNumberPacket(p[0]) && p[0].length === 1 && p[0][0] === n;
+
+const calculateDecoder = (packets: Packet[]): number => {
+  const a = packets.findIndex(findDivider(2));
+  const b = packets.findIndex(findDivider(6));
+  console.log(`${a} = ${b}`);
+  return (a + 1) * (b + 1);
+};
+export {
+  parseLines,
+  checkPackets,
+  comparePacketItems,
+  sortPackets,
+  calculateDecoder,
+};
