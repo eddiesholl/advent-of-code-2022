@@ -1,3 +1,5 @@
+import { createMap } from "../common/map";
+
 type MonkeyId = number;
 type Operand = "*" | "+" | "^";
 type Monkey = {
@@ -11,11 +13,15 @@ type Monkey = {
   inspections: number;
 };
 type GameState = Record<MonkeyId, number[]>;
-const processRounds = (monkeys: Monkey[]): Monkey[] => {
+const processRounds = (
+  monkeys: Monkey[],
+  enablePart2: boolean = false,
+  rounds: number = 20
+): Monkey[] => {
   let roundCounter = 0;
   let gameState = createGameState(monkeys);
-  while (roundCounter < 20) {
-    gameState = processRound(monkeys, gameState);
+  while (roundCounter < rounds) {
+    gameState = processRound(monkeys, gameState, enablePart2);
     roundCounter++;
   }
   return monkeys;
@@ -25,25 +31,48 @@ const busiestMonkeys = (monkeys: Monkey[]): number[] => {
     .sort((m1, m2) => m2.inspections - m1.inspections)
     .map((m) => m.inspections);
 };
-const processRound = (monkeys: Monkey[], gameState: GameState): GameState => {
+const applyMonkeyModifier = (monkey: Monkey, worry: number): number =>
+  monkey.operand === "*"
+    ? worry * monkey.operationValue
+    : monkey.operand === "+"
+    ? worry + monkey.operationValue
+    : worry * worry;
+/**
+ * Example:
+ * incoming worry = 884
+ * monkey modifies with operand +, opValue 1
+ * new value is 885, modulo 11 yields a value of 5
+ * */
+const normaliseWorry = (monkey: Monkey, worry: number): number => {
+  return worry;
+};
+const processRound = (
+  monkeys: Monkey[],
+  gameState: GameState,
+  enablePart2: boolean = false
+): GameState => {
   const nextState = {
     ...gameState,
   };
+  const monkeysByName = createMap(monkeys, (m) => m.name);
   monkeys.forEach((monkey) => {
     const startedWith = gameState[monkey.name];
+    // console.log(`monkey ${monkey.name}`);
+    // console.log(startedWith);
     startedWith.forEach((n) => {
-      const withWorry =
-        monkey.operand === "*"
-          ? n * monkey.operationValue
-          : monkey.operand === "+"
-          ? n + monkey.operationValue
-          : n * n;
-      const bored = Math.floor(withWorry / 3);
-      if (bored % monkey.test === 0) {
-        nextState[monkey.ifTrue].push(bored);
-      } else {
-        nextState[monkey.ifFalse].push(bored);
-      }
+      const withWorry = applyMonkeyModifier(monkey, n);
+      const bored = enablePart2 ? withWorry : Math.floor(withWorry / 3);
+      const monkeyPassCheck = bored % monkey.test;
+      // console.log(
+      //   `n ${n}, operand ${monkey.operand}, opValue ${monkey.operationValue}`
+      // );
+      // console.log(
+      //   `bored ${bored}, test ${monkey.test}, check ${monkeyPassCheck}`
+      // );
+      const targetMonkey =
+        monkeysByName[monkeyPassCheck === 0 ? monkey.ifTrue : monkey.ifFalse];
+      const normalisedWorry = normaliseWorry(targetMonkey, bored);
+      nextState[targetMonkey.name].push(normalisedWorry);
       monkey.inspections = monkey.inspections + 1;
     });
     nextState[monkey.name] = [];
@@ -101,4 +130,6 @@ export {
   createGameState,
   busiestMonkeys,
   processRounds,
+  Monkey,
+  GameState,
 };
