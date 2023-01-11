@@ -1,3 +1,5 @@
+import { locationEquals } from "../common/location";
+
 type Height = string;
 type MapRow = Height[];
 type Map = MapRow[];
@@ -9,6 +11,10 @@ type Game = {
   start: Location;
   end: Location;
   map: Map;
+};
+type Trail = {
+  location: Location;
+  path: Location[];
 };
 const parseInput = (lines: string[]): Game => {
   const map: Map = [];
@@ -29,9 +35,6 @@ const parseInput = (lines: string[]): Game => {
       }
     });
   return { start, end, map };
-};
-const findPath = (game: Game): Location[] => {
-  return shortestPathTo(game.start, game.end, game.map, [], 200) || [];
 };
 const valueOfHeight = (height: string): number => {
   const realString = height === "S" ? "a" : height === "E" ? "z" : height;
@@ -141,5 +144,37 @@ const shortestPathTo = (
   });
   // console.log("return bestPath with length " + (bestPath || []).length);
   return bestPath;
+};
+const findPath = (game: Game): Location[] => {
+  let turnCount = 0;
+  const start = { location: game.start, path: [game.start] };
+  let currentTrails: Trail[] = [start];
+  let successfulTrail: Trail | undefined;
+  const visited: Location[] = [game.start];
+  while (!successfulTrail && turnCount < 500) {
+    console.log(turnCount);
+    // console.log(currentTrails.map((t) => t.location));
+    const nextTrails = currentTrails.flatMap((t) => {
+      const fromHere = getCandidateSteps(t.location, game.map, visited);
+      return fromHere.map((nextLocation) => ({
+        location: nextLocation,
+        path: t.path.concat(nextLocation),
+      }));
+    });
+    const nextLocations = nextTrails.map((t) => t.location);
+    visited.push(...nextLocations);
+    currentTrails = nextTrails.filter((t, ix, self) => {
+      return (
+        self.findIndex((other) =>
+          locationEquals(t.location)(other.location)
+        ) === ix
+      );
+    });
+    successfulTrail = currentTrails.find((t) =>
+      locationEquals(t.location)(game.end)
+    );
+    turnCount++;
+  }
+  return successfulTrail?.path || [];
 };
 export { parseInput, findPath, getCandidateSteps };
