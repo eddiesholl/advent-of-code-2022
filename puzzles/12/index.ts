@@ -78,12 +78,21 @@ const getCandidateSteps = (
   return unvisitedAndClimbable;
 };
 
-const findPath = (game: Game): Location[] => {
+const findPath = (game: Game): Location[] =>
+  findPathFromAny(game, [game.start]);
+
+const findPathFromAny = (
+  game: Game,
+  startLocations: Location[]
+): Location[] => {
   let turnCount = 0;
   const start = { location: game.start, path: [game.start] };
-  let currentTrails: Trail[] = [start];
+  let currentTrails: Trail[] = startLocations.map((l) => ({
+    location: l,
+    path: [l],
+  }));
   let successfulTrail: Trail | undefined;
-  const visited: Location[] = [game.start];
+  const visited: Location[] = startLocations;
   while (!successfulTrail && turnCount < 500) {
     // console.log(currentTrails.map((t) => t.location));
     const nextTrails = currentTrails.flatMap((t) => {
@@ -109,4 +118,16 @@ const findPath = (game: Game): Location[] => {
   }
   return successfulTrail?.path || [];
 };
-export { parseInput, findPath, getCandidateSteps };
+const findPathFromA = (game: Game): Location[] => {
+  const locations: Location[] = [];
+  game.map.forEach((r, y) => {
+    r.forEach((c, x) => {
+      if (c === "a" || c === "S") {
+        locations.push({ x, y });
+      }
+    });
+  });
+
+  return findPathFromAny(game, locations);
+};
+export { parseInput, findPath, getCandidateSteps, findPathFromA };
