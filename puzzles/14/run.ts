@@ -3,8 +3,9 @@ import { createGrid, fillWithSand, Grid, parseLines } from "./index";
 import { logGrid } from "./render";
 
 const states = fillWithSand(
-  // createGrid(parseLines(readLines(__dirname, "example.txt")))
-  createGrid(parseLines(readLines(__dirname, "input.txt")))
+  createGrid(parseLines(readLines(__dirname, "example.txt"))),
+  true
+  // createGrid(parseLines(readLines(__dirname, "input.txt")))
 );
 
 states.forEach((state) => {

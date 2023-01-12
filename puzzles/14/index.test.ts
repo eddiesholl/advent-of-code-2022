@@ -66,4 +66,14 @@ describe("14", () => {
       });
     });
   });
+  describe("part 2", () => {
+    it("handles the example", () => {
+      expect(
+        fillWithSand(
+          createGrid(parseLines(readLines(__dirname, "example.txt"))),
+          true
+        ).length
+      ).toEqual(93);
+    });
+  });
 });

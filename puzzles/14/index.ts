@@ -98,7 +98,11 @@ const cloneGrid = (grid: Grid): Grid => {
   return result;
 };
 const isPointBelow = (a: Point, b: Point) => a.y > b.y;
-const addSand = (state: GameState, lowestRock: Location): GameState => {
+const addSand = (
+  state: GameState,
+  lowestRock: Location,
+  part2: boolean = false
+): GameState => {
   const nextState: GameState = {
     grid: cloneGrid(state.grid),
     sandSettled: state.sandSettled,
@@ -110,7 +114,18 @@ const addSand = (state: GameState, lowestRock: Location): GameState => {
   while (stillMoving) {
     nextState.path.push(sandLocation);
     // console.log(`sand adding at x:${sandLocation.x}, y:${sandLocation.y}`);
-    if (isPointBelow(sandLocation, lowestRock)) {
+    if (part2 && sandLocation.y === lowestRock.y + 1) {
+      setLocation(nextState.grid, {
+        ...sandLocation,
+        material: "sand",
+      });
+      nextState.newRock = sandLocation;
+      console.log(
+        `Placed floor sand at x:${sandLocation.x} - y${sandLocation.y}`
+      );
+      stillMoving = false;
+      continue;
+    } else if (isPointBelow(sandLocation, lowestRock)) {
       console.log(
         `point ${sandLocation.x},${sandLocation.y} is below lowestRock ${lowestRock.x},${lowestRock.y}`
       );
@@ -147,12 +162,17 @@ const addSand = (state: GameState, lowestRock: Location): GameState => {
         nextState.newRock = sandLocation;
         console.log(`Placed sand at x:${sandLocation.x} - y${sandLocation.y}`);
         stillMoving = false;
+        if (part2 && locationEquals(sandLocation)(sandStart)) {
+          console.log("Placed sand at the starting point");
+          nextState.sandSettled = false;
+          return nextState;
+        }
       }
     }
   }
   return nextState;
 };
-const fillWithSand = (grid: Grid): GameState[] => {
+const fillWithSand = (grid: Grid, part2: boolean = false): GameState[] => {
   const states: GameState[] = [];
   const lowestRock = findLowestRock(grid);
   console.log(`lowest rock = {x:${lowestRock.x}, y:${lowestRock.y}`);
@@ -164,7 +184,7 @@ const fillWithSand = (grid: Grid): GameState[] => {
   };
   while (currentState.sandSettled) {
     // console.log("sand count " + sandCount);
-    currentState = addSand(currentState, lowestRock);
+    currentState = addSand(currentState, lowestRock, part2);
     states.push(currentState);
   }
   return states;
