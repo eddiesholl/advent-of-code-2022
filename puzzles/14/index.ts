@@ -1,4 +1,5 @@
 import { locationEquals } from "../common/location";
+import { logGrid } from "./render";
 
 interface Point {
   x: number;
@@ -172,8 +173,8 @@ const addSand = (
   }
   return nextState;
 };
-const fillWithSand = (grid: Grid, part2: boolean = false): GameState[] => {
-  const states: GameState[] = [];
+const fillWithSand = (grid: Grid, part2: boolean = false): GameState => {
+  // const states: GameState[] = [];
   const lowestRock = findLowestRock(grid);
   console.log(`lowest rock = {x:${lowestRock.x}, y:${lowestRock.y}`);
   let currentState = {
@@ -185,9 +186,12 @@ const fillWithSand = (grid: Grid, part2: boolean = false): GameState[] => {
   while (currentState.sandSettled) {
     // console.log("sand count " + sandCount);
     currentState = addSand(currentState, lowestRock, part2);
-    states.push(currentState);
+    if (currentState.sandCount % 100 === 0) {
+      logGrid(currentState);
+    }
+    // states.push(currentState);
   }
-  return states;
+  return currentState;
 };
 export {
   parseLines,

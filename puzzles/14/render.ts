@@ -1,7 +1,7 @@
 import { locationEquals } from "../common/location";
 import { GameState, Grid } from "./index";
 
-const logGrid = ({ grid, path, newRock }: GameState) => {
+const logGrid = ({ grid, path, newRock, sandCount }: GameState) => {
   const allLocs = Object.values(grid).flatMap((r) => Object.values(r));
   const locsByX = allLocs.sort((a, b) => a.x - b.x);
   const minX = locsByX[0].x;
@@ -9,6 +9,7 @@ const logGrid = ({ grid, path, newRock }: GameState) => {
   const locsByY = allLocs.sort((a, b) => a.y - b.y);
   const minY = Math.min(0, locsByY[0].y);
   const maxY = locsByY.slice(-1)[0].y;
+  console.log("sand count " + sandCount);
   console.log(`${minX}-${maxX} ${minY}-${maxY}`);
   let result = "";
   let cy = minY;

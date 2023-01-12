@@ -20,7 +20,7 @@ describe("14", () => {
       expect(
         fillWithSand(
           createGrid(parseLines(readLines(__dirname, "example.txt")))
-        ).length
+        ).sandCount
       ).toEqual(25);
     });
   });
@@ -72,7 +72,7 @@ describe("14", () => {
         fillWithSand(
           createGrid(parseLines(readLines(__dirname, "example.txt"))),
           true
-        ).length
+        ).sandCount
       ).toEqual(93);
     });
   });
