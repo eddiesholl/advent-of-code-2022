@@ -1,3 +1,5 @@
+import { locationEquals } from "../common/location";
+
 interface Point {
   x: number;
   y: number;
@@ -14,6 +16,8 @@ type GameState = {
   grid: Grid;
   sandCount: number;
   sandSettled: boolean;
+  path: Point[];
+  newRock?: Point;
 };
 const pointsEqual = (a: Point, b: Point) => a.x === b.x && a.y === b.y;
 const delta = (a: Point, b: Point): Distance => ({
@@ -43,11 +47,14 @@ const setRock = (grid: Grid, start: Point, end: Point) => {
   // console.log(JSON.stringify(start));
   // console.log(JSON.stringify(end));
 
-  while (!pointsEqual(currentLocation, end)) {
+  while (true) {
     setLocation(grid, {
       ...currentLocation,
       material: "rock",
     });
+    if (locationEquals(currentLocation)(end)) {
+      break;
+    }
     currentLocation = move(currentLocation, movement);
   }
 };
@@ -96,10 +103,12 @@ const addSand = (state: GameState, lowestRock: Location): GameState => {
     grid: cloneGrid(state.grid),
     sandSettled: state.sandSettled,
     sandCount: state.sandCount + 1,
+    path: [],
   };
   let sandLocation = sandStart;
   let stillMoving = true;
   while (stillMoving) {
+    nextState.path.push(sandLocation);
     // console.log(`sand adding at x:${sandLocation.x}, y:${sandLocation.y}`);
     if (isPointBelow(sandLocation, lowestRock)) {
       console.log(
@@ -135,6 +144,7 @@ const addSand = (state: GameState, lowestRock: Location): GameState => {
           ...sandLocation,
           material: "sand",
         });
+        nextState.newRock = sandLocation;
         console.log(`Placed sand at x:${sandLocation.x} - y${sandLocation.y}`);
         stillMoving = false;
       }
@@ -150,6 +160,7 @@ const fillWithSand = (grid: Grid): GameState[] => {
     grid,
     sandCount: 0,
     sandSettled: true,
+    path: [] as Point[],
   };
   while (currentState.sandSettled) {
     // console.log("sand count " + sandCount);
@@ -158,4 +169,12 @@ const fillWithSand = (grid: Grid): GameState[] => {
   }
   return states;
 };
-export { parseLines, createGrid, fillWithSand, findLowestRock, Material, Grid };
+export {
+  parseLines,
+  createGrid,
+  fillWithSand,
+  findLowestRock,
+  Material,
+  Grid,
+  GameState,
+};

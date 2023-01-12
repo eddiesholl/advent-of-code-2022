@@ -21,7 +21,7 @@ describe("14", () => {
         fillWithSand(
           createGrid(parseLines(readLines(__dirname, "example.txt")))
         ).length
-      ).toEqual(24);
+      ).toEqual(25);
     });
   });
   describe("createGrid", () => {
@@ -43,6 +43,7 @@ describe("14", () => {
         6: {
           498: { x: 498, y: 6, material: "rock" },
           497: { x: 497, y: 6, material: "rock" },
+          496: { x: 496, y: 6, material: "rock" },
           502: { x: 502, y: 6, material: "rock" },
         },
         7: {
@@ -52,6 +53,7 @@ describe("14", () => {
           502: { x: 502, y: 8, material: "rock" },
         },
         9: {
+          494: { x: 494, y: 9, material: "rock" },
           495: { x: 495, y: 9, material: "rock" },
           496: { x: 496, y: 9, material: "rock" },
           497: { x: 497, y: 9, material: "rock" },

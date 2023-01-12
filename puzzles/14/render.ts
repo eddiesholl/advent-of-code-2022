@@ -1,6 +1,7 @@
-import { Grid } from "./index";
+import { locationEquals } from "../common/location";
+import { GameState, Grid } from "./index";
 
-const logGrid = (grid: Grid) => {
+const logGrid = ({ grid, path, newRock }: GameState) => {
   const allLocs = Object.values(grid).flatMap((r) => Object.values(r));
   const locsByX = allLocs.sort((a, b) => a.x - b.x);
   const minX = locsByX[0].x;
@@ -15,16 +16,23 @@ const logGrid = (grid: Grid) => {
     let cx = minX;
     const row = grid[cy];
     while (cx <= maxX) {
+      const indexInPath = path.findIndex(locationEquals({ x: cx, y: cy }));
+      const emptyChar =
+        indexInPath > -1 ? indexInPath % 10 : cx === 500 ? "." : " ";
       if (row === undefined) {
-        result += cx === 500 ? "." : " ";
+        result += emptyChar;
       } else {
         const loc = row[cx];
         if (loc === undefined) {
-          result += cx === 500 ? "." : " ";
+          result += emptyChar;
         } else if (loc.material === "rock") {
           result += "#";
         } else if (loc.material === "sand") {
-          result += "o";
+          if (newRock && locationEquals(loc)(newRock)) {
+            result += "O";
+          } else {
+            result += "o";
+          }
         } else if (loc.material === "air") {
           result += " ";
         }
