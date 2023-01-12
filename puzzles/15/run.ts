@@ -6,4 +6,4 @@ const score = calculateNotBeacons(
   // 10
   2000000
 );
-console.log("Score is " + score);
+console.log("Score is " + score.length);

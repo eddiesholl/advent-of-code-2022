@@ -1,11 +1,19 @@
 import { readLines } from "../common/input";
-import { calculateNotBeacons, parseLines } from "./index";
+import { calculateNotBeacons, findDistressBeacon, parseLines } from "./index";
 
-describe("00", () => {
+describe("15", () => {
+  describe("part 2", () => {
+    it("handles the example", () => {
+      expect(
+        findDistressBeacon(parseLines(readLines(__dirname, "example.txt")), 10)
+      ).toEqual({ x: 1, y: 1 });
+    });
+  });
   describe("calculateNotBeacons", () => {
     it("handles the example", () => {
       expect(
         calculateNotBeacons(parseLines(readLines(__dirname, "example.txt")), 10)
+          .length
       ).toEqual(26);
     });
   });
