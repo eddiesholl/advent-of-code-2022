@@ -117,7 +117,7 @@ const locationsCloserThanBeacon = (
   return result;
 };
 
-const calculateNotBeacons = (sensors: Sensor[], row: number): number[] => {
+const calculateNotBeacons = (sensors: Sensor[], row: number): Set<number> => {
   const bounds = getBounds(sensors);
   const allKnownBeacons = sensors
     .map((s) => s.nearestBeacon)
@@ -135,9 +135,11 @@ const calculateNotBeacons = (sensors: Sensor[], row: number): number[] => {
     })
     .flat();
   console.log(beaconFreeLocationsNonUnique.length);
-  const uniqueLocations = Array.from(
-    new Set(beaconFreeLocationsNonUnique)
-  ).filter((x) => !allKnownBeacons.some(locationEquals({ x, y: row })));
+  const uniqueLocations = new Set(
+    beaconFreeLocationsNonUnique.filter(
+      (x) => !allKnownBeacons.some(locationEquals({ x, y: row }))
+    )
+  );
   // REVISIT Don't forget about known beacon spots
   // const beaconFreeOnRow = beaconFreeLocations.filter((l) => l.y === row);
   return uniqueLocations;
@@ -165,6 +167,28 @@ const findDistressBeacon = (
   minValue: number = 0,
   maxValue: number = 4000000
 ): Location => {
+  const allKnownBeacons = sensors
+    .map((s) => s.nearestBeacon)
+    .reduce(
+      (acc, curr) => acc.concat(acc.find(locationEquals(curr)) ? [] : [curr]),
+      [] as Location[]
+    );
+  let y = minValue;
+  while (y < maxValue) {
+    const notBeacons = calculateNotBeacons(sensors, y);
+    let x = minValue;
+    while (x < maxValue) {
+      if (
+        !notBeacons.has(x) &&
+        !allKnownBeacons.some(locationEquals({ x, y }))
+      ) {
+        console.log(notBeacons);
+        return { x, y };
+      }
+      x++;
+    }
+    y++;
+  }
   return { x: 1, y: 1 };
 };
 export { parseLines, calculateNotBeacons, findDistressBeacon };

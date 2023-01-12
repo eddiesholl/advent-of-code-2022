@@ -5,15 +5,19 @@ describe("15", () => {
   describe("part 2", () => {
     it("handles the example", () => {
       expect(
-        findDistressBeacon(parseLines(readLines(__dirname, "example.txt")), 10)
-      ).toEqual({ x: 1, y: 1 });
+        findDistressBeacon(
+          parseLines(readLines(__dirname, "example.txt")),
+          0,
+          20
+        )
+      ).toEqual({ x: 14, y: 11 });
     });
   });
   describe("calculateNotBeacons", () => {
     it("handles the example", () => {
       expect(
         calculateNotBeacons(parseLines(readLines(__dirname, "example.txt")), 10)
-          .length
+          .size
       ).toEqual(26);
     });
   });
