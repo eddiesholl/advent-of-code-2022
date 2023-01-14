@@ -80,6 +80,96 @@ describe("15-2", () => {
         },
       });
     });
+
+    it("handles 4", () => {
+      newSpan = { start: 4, end: 7, type: "beacon" };
+      mergeSpan(startSpan, newSpan);
+      expect(startSpan).toEqual({
+        start: 1,
+        end: 3,
+        type: "notBeacon",
+        next: {
+          start: 4,
+          end: 7,
+          type: "beacon",
+        },
+      });
+    });
+    it("handles 5", () => {
+      newSpan = { start: 1, end: 5, type: "beacon" };
+      mergeSpan(startSpan, newSpan);
+      expect(startSpan).toEqual({
+        start: 1,
+        end: 5,
+        type: "beacon",
+        next: undefined,
+      });
+    });
+    it("handles 6", () => {
+      newSpan = { start: 2, end: 4, type: "beacon" };
+      mergeSpan(startSpan, newSpan);
+      expect(startSpan).toEqual({
+        start: 1,
+        end: 1,
+        type: "notBeacon",
+        next: {
+          start: 2,
+          end: 4,
+          type: "beacon",
+          next: {
+            start: 5,
+            end: 5,
+            type: "notBeacon",
+            next: undefined,
+          },
+        },
+      });
+    });
+    it("handles 7", () => {
+      newSpan = { start: 0, end: 3, type: "sensor" };
+      mergeSpan(startSpan, newSpan);
+      expect(startSpan).toEqual({
+        start: 0,
+        end: 3,
+        type: "sensor",
+        next: {
+          start: 4,
+          end: 5,
+          type: "notBeacon",
+          next: undefined,
+        },
+      });
+    });
+    it("handles 8", () => {
+      newSpan = { start: 0, end: 1, type: "sensor" };
+      mergeSpan(startSpan, newSpan);
+      expect(startSpan).toEqual({
+        start: 0,
+        end: 1,
+        type: "sensor",
+        next: {
+          start: 2,
+          end: 5,
+          type: "notBeacon",
+          next: undefined,
+        },
+      });
+    });
+    it("handles 9", () => {
+      newSpan = { start: -1, end: 0, type: "sensor" };
+      mergeSpan(startSpan, newSpan);
+      expect(startSpan).toEqual({
+        start: -1,
+        end: 0,
+        type: "sensor",
+        next: {
+          start: 1,
+          end: 5,
+          type: "notBeacon",
+          next: undefined,
+        },
+      });
+    });
   });
   describe("createGrid", () => {
     it("handles the example row 1", () => {

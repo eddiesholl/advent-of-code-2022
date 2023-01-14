@@ -78,6 +78,7 @@ const overlapSpan = (targetSpan: Span, newSpan: Span): void => {
     B = targetSpan.end,
     C = newSpan.start,
     D = newSpan.end;
+  console.log(`A:${A}-B:${B} C:${C}-D:${D}`);
   if (A === C) {
     if (B === D) {
       targetSpan.type = mergeType(targetSpan.type, newSpan.type);
@@ -98,6 +99,7 @@ const overlapSpan = (targetSpan: Span, newSpan: Span): void => {
       targetSpan.end = newSpan.start - 1;
       targetSpan.next = targetOverlap;
     } else {
+      console.log("overlap subset");
       const targetOverlap = trimSpan(
         targetSpan,
         newSpan.start,
@@ -105,7 +107,7 @@ const overlapSpan = (targetSpan: Span, newSpan: Span): void => {
       ) as Span;
       const targetPost = trimSpan(
         targetSpan,
-        newSpan.start + 1,
+        newSpan.end + 1,
         targetSpan.end
       ) as Span;
       targetOverlap.type = mergeType(targetOverlap.type, newSpan.type);
@@ -138,6 +140,9 @@ const insertSpan = (currentHead: Span, newHead: Span): void => {
 
 const trimSpan = (s: Span, start: number, end: number): Span | undefined => {
   if (start > end || end < s.start || start > s.end) {
+    console.log("trimSpan bail");
+    console.log(s);
+    console.log(`${start} - ${end}`);
     return;
   }
   return {
@@ -145,6 +150,20 @@ const trimSpan = (s: Span, start: number, end: number): Span | undefined => {
     start: Math.max(s.start, start),
     end: Math.min(s.end, end),
   };
+};
+const removeDupes = (head: Span): void => {
+  let current = head;
+  let next = head.next;
+  while (current && next) {
+    if (next.type === current.type) {
+      current.end = next.end;
+      next = next.next;
+      current.next = next;
+      next = current.next;
+    } else {
+      current = next;
+    }
+  }
 };
 
 /**
@@ -179,21 +198,27 @@ const mergeSpan = (startSpan: Span, newSpan: Span): void => {
   const newPre = trimSpan(newSpan, newSpan.start, startSpan.start - 1);
   const newPost = trimSpan(newSpan, startSpan.end + 1, newSpan.end);
   const newOverlap = trimSpan(newSpan, startSpan.start, startSpan.end);
-  if (newPre) {
-    insertSpan(startSpan, newPre);
-  }
-
   if (newOverlap) {
+    console.log("newOverlap " + JSON.stringify(newOverlap));
     overlapSpan(startSpan, newOverlap);
   }
 
   if (newPost) {
+    console.log("newPost " + JSON.stringify(newPost));
     if (startSpan.next) {
       mergeSpan(startSpan.next, newPost);
     } else {
       startSpan.next = newPost;
     }
   }
+
+  // Do the pre last as it mutates the ordering
+  if (newPre) {
+    console.log("newPre " + JSON.stringify(newPre));
+    insertSpan(startSpan, newPre);
+  }
+
+  removeDupes(startSpan);
 };
 const createGrid = (
   sensors: Sensor[],
