@@ -59,25 +59,94 @@ const mergeSpans = (startSpan: Span, newSpans: Span[]): void => {
     head = newSpans.slice(0)[0];
   }
 };
-const cloneSpan = (spanToModify: Span, template: Span): void => {
-  spanToModify.start = template.start;
-  spanToModify.end = template.end;
-  spanToModify.type = template.type;
-  spanToModify.next = template.next;
-};
-const splitSpan = (s: Span, n: number): [Span, Span] => {
-  if (n < s.start || n > s.end) {
-    throw Error("Splitting spans with illegal n value");
+const mergeType = (current: SpanType, update: SpanType): SpanType => {
+  if (current === "beacon" || current === "sensor") {
+    return current;
+  } else {
+    return update;
   }
-  const s2: Span = {
-    start: n === s.end ? s.end : n + 1,
-    end: s.end,
-    type: s.type,
-    next: s.next,
-  };
-  const s1: Span = { start: s.start, end: n, type: s.type, next: s2 };
-  return [s1, s2];
 };
+/**
+ * A    B
+ * C    D
+ * C   D
+ *  C   D
+ *  C D
+ * */
+const overlapSpan = (targetSpan: Span, newSpan: Span): void => {
+  const A = targetSpan.start,
+    B = targetSpan.end,
+    C = newSpan.start,
+    D = newSpan.end;
+  if (A === C) {
+    if (B === D) {
+      targetSpan.type = mergeType(targetSpan.type, newSpan.type);
+    } else {
+      const targetPost = trimSpan(targetSpan, newSpan.end + 1, targetSpan.end);
+      targetSpan.end = newSpan.end;
+      targetSpan.type = mergeType(targetSpan.type, newSpan.type);
+      targetSpan.next = targetPost;
+    }
+  } else if (C > A) {
+    if (B === D) {
+      const targetOverlap = trimSpan(
+        targetSpan,
+        newSpan.start,
+        targetSpan.end
+      ) as Span;
+      targetOverlap.type = mergeType(targetOverlap.type, newSpan.type);
+      targetSpan.end = newSpan.start - 1;
+      targetSpan.next = targetOverlap;
+    } else {
+      const targetOverlap = trimSpan(
+        targetSpan,
+        newSpan.start,
+        newSpan.end
+      ) as Span;
+      const targetPost = trimSpan(
+        targetSpan,
+        newSpan.start + 1,
+        targetSpan.end
+      ) as Span;
+      targetOverlap.type = mergeType(targetOverlap.type, newSpan.type);
+      targetSpan.end = newSpan.start - 1;
+      targetSpan.next = targetOverlap;
+      targetOverlap.next = targetPost;
+    }
+  }
+};
+const insertSpan = (currentHead: Span, newHead: Span): void => {
+  const currentHeadBackup = { ...currentHead };
+  currentHead.start = newHead.start;
+  currentHead.end = newHead.end;
+  currentHead.type = newHead.type;
+  currentHead.next = newHead;
+
+  newHead.start = currentHeadBackup.start;
+  newHead.end = currentHeadBackup.end;
+  newHead.type = currentHeadBackup.type;
+  newHead.next = currentHeadBackup.next;
+};
+/**
+ *         s.start     s.end
+ *  s  e
+ *   s        e
+ *           s       e
+ *                 s            e
+ *                          s    e
+ * */
+
+const trimSpan = (s: Span, start: number, end: number): Span | undefined => {
+  if (start > end || end < s.start || start > s.end) {
+    return;
+  }
+  return {
+    ...s,
+    start: Math.max(s.start, start),
+    end: Math.min(s.end, end),
+  };
+};
+
 /**
  * Scenarios
  * A = startSpan.start, B = startSpan.end, C = newSpan.start, D = newSpan.end
@@ -106,43 +175,23 @@ const splitSpan = (s: Span, n: number): [Span, Span] => {
 const mergeSpan = (startSpan: Span, newSpan: Span): void => {
   console.log(startSpan);
   console.log(newSpan);
-  const A = startSpan.start,
-    B = startSpan.end,
-    C = newSpan.start,
-    D = newSpan.end;
-  if (C > B) {
+
+  const newPre = trimSpan(newSpan, newSpan.start, startSpan.start - 1);
+  const newPost = trimSpan(newSpan, startSpan.end + 1, newSpan.end);
+  const newOverlap = trimSpan(newSpan, startSpan.start, startSpan.end);
+  if (newPre) {
+    insertSpan(startSpan, newPre);
+  }
+
+  if (newOverlap) {
+    overlapSpan(startSpan, newOverlap);
+  }
+
+  if (newPost) {
     if (startSpan.next) {
-      mergeSpan(startSpan.next, newSpan); // 2
+      mergeSpan(startSpan.next, newPost);
     } else {
-      startSpan.next = newSpan; // 1
-    }
-  } else if (C === B) {
-    if (D === B) {
-    } else {
-      const [s1, s2] = splitSpan(newSpan, C);
-      mergeSpan(startSpan, s1);
-      mergeSpan(startSpan, s2);
-    }
-  } else if (C >= A) {
-    if (D > B) {
-      const [s1, s2] = splitSpan(newSpan, B);
-      mergeSpan(startSpan, s1);
-      mergeSpan(startSpan, s2);
-    } else {
-      // newSpan is subset of startSpan
-    }
-  } else {
-    // C < A
-    if (D >= A) {
-      const [s1, s2] = splitSpan(newSpan, A);
-      mergeSpan(startSpan, s1);
-      mergeSpan(startSpan, s2);
-    } else {
-      // new is fully before start
-      const startClone = { ...startSpan };
-      cloneSpan(startSpan, newSpan);
-      cloneSpan(newSpan, startClone);
-      startSpan.next = newSpan;
+      startSpan.next = newPost;
     }
   }
 };

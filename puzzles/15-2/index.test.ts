@@ -107,9 +107,14 @@ describe("15-2", () => {
           type: "notBeacon",
         },
         15: {
-          end: 6,
+          end: -2,
           start: -2,
-          type: "notBeacon",
+          type: "beacon",
+          next: {
+            end: 6,
+            start: -1,
+            type: "notBeacon",
+          },
         },
         16: {
           end: 7,
