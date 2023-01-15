@@ -1,11 +1,5 @@
 import { readLines } from "../common/input";
-import {
-  findBestValvePath,
-  GameState,
-  parseLines,
-  recurse,
-  renderMinute,
-} from "./index";
+import { findBestValvePath, GameState, parseLines, recurse } from "./index";
 
 describe("16", () => {
   describe("recurse", () => {

@@ -38,10 +38,6 @@ type ValveOp = MoveOp | OpenOp | NoOp;
 type ValveMap = Record<string, Valve>;
 type VolumeNumbers = { released: number; rate: number };
 type VisitBag = Record<string, VolumeNumbers>;
-const describeSequence = (minutes: Omit<Minute, "state">[]): string =>
-  minutes
-    .map((m) => (m.op.kind === "noop" ? "noop" : `${m.op.kind}-${m.op.target}`))
-    .join("-");
 
 const findBestValvePath = (valves: Valve[], endTime: number): TerminalState => {
   const valveMap: ValveMap = {};
@@ -88,24 +84,6 @@ const nextStateFrom = (
       released: state.released + state.rate,
     };
   }
-};
-const fillNoops = (minutes: Minute[], endTime: number): TerminalState => {
-  const { op: prevOp, state: prevState } = minutes.slice(-1)[0];
-  let t = prevState.t;
-  const sequence = [...minutes];
-  let lastReleased: number = 0;
-  while (t <= endTime) {
-    t++;
-    const released = prevState.released + prevState.rate;
-    const state = {
-      ...prevState,
-      t,
-      released,
-    };
-    lastReleased = released;
-    sequence.push({ op: { kind: "noop" }, state });
-  }
-  return { sequence, released: lastReleased };
 };
 const recurse = (
   valveMap: ValveMap,
@@ -184,7 +162,6 @@ const recurse = (
   }
 
   if (possibleOps.length === 0) {
-    // return fillNoops(minutes, endTime);
     possibleOps.push({ kind: "noop" });
   }
   const allOutcomes: TerminalState[] = [];
@@ -208,30 +185,6 @@ const recurse = (
 
   return best;
 };
-/*
-== Minute 14 ==
-Valves BB, DD, and JJ are open, releasing 54 pressure.
-You move to valve FF.
-*/
-const renderMinute = ({ op, state }: Minute) => {
-  console.log(`== Minute ${state.t} ==`);
-  if (state.open.size === 0) {
-    console.log("No valves are open");
-  } else {
-    console.log(
-      `Valves ${Array.from(state.open).sort().join(", ")} are open, releasing ${
-        state.rate
-      } pressure`
-    );
-  }
-  if (op.kind === "open") {
-    console.log(`You open valve ${op.target}`);
-  } else if (op.kind === "move") {
-    console.log(`You move to valve ${op.target}`);
-  }
-  console.log(state.released);
-  console.log("");
-};
 const parseLines = (lines: string[]): Valve[] =>
   lines
     .map((l) => {
@@ -248,4 +201,4 @@ const parseLines = (lines: string[]): Valve[] =>
     })
     .filter(notEmpty);
 
-export { parseLines, findBestValvePath, recurse, GameState, renderMinute };
+export { parseLines, findBestValvePath, recurse, GameState, Minute, Valve };

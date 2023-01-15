@@ -1,5 +1,6 @@
 import { readLines } from "../common/input";
-import { findBestValvePath, parseLines, renderMinute } from "./index";
+import { findBestValvePath, parseLines } from "./index";
+import { renderMinute } from "./render";
 
 const score = findBestValvePath(
   parseLines(readLines(__dirname, "input.txt")),
