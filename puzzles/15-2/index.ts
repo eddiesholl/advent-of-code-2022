@@ -8,10 +8,6 @@ type Sensor = {
   nearestBeacon: Location;
   beaconDistance: number;
 };
-type Bounds = {
-  topLeft: Location;
-  bottomRight: Location;
-};
 type SpanType = "empty" | "notBeacon" | "sensor" | "beacon";
 type Span = {
   start: number;
@@ -55,13 +51,6 @@ const parseLines = (lines: string[]): Sensor[] => {
     .filter(notEmpty);
 };
 
-const mergeSpans = (startSpan: Span, newSpans: Span[]): void => {
-  let head = newSpans.slice(0)[0];
-  while (head) {
-    mergeSpan(startSpan, head);
-    head = newSpans.slice(0)[0];
-  }
-};
 const mergeType = (current: SpanType, update: SpanType): SpanType => {
   if (current === "beacon" || current === "sensor") {
     return current;
@@ -143,9 +132,6 @@ const insertSpan = (currentHead: Span, newHead: Span): void => {
 
 const trimSpan = (s: Span, start: number, end: number): Span | undefined => {
   if (start > end || end < s.start || start > s.end) {
-    // console.log("trimSpan bail");
-    // console.log(s);
-    // console.log(`${start} - ${end}`);
     return;
   }
   return {
@@ -233,11 +219,9 @@ const findEndOfSpans = (s: Span): number => {
   return current.end;
 };
 const rowsToGrid = (rows: Rows): Grid => {
-  // console.log(rows);
   const keys = Object.keys(rows)
     .map((k) => parseInt(k))
     .sort((a, b) => a - b);
-  // console.log(keys);
   const values = Object.values(rows);
   const minX = values.reduce(
     (prev, curr) => Math.min(prev, curr.start),
@@ -256,22 +240,10 @@ const rowsToGrid = (rows: Rows): Grid => {
     maxY: keys.slice(-1)[0],
   };
 };
-const createGrid = (
-  sensors: Sensor[]
-  // minValue: number = 0,
-  // maxValue: number = 4000000
-): Grid => {
+const createGrid = (sensors: Sensor[]): Grid => {
   const rows: Rows = {};
   sensors.forEach((sensor) => {
-    let debug = false;
-    // if (sensor.name === 2) {
-    //   debug = true;
-    //   console.log("Sensor 2");
-    //   console.log(sensor);
-    // }
     const distanceToBeacon = sensor.beaconDistance;
-    // let y = sensor.location.y - distanceToBeacon;
-    // const yEnd = sensor.location.y + distanceToBeacon;
     let d = 0;
     while (d <= distanceToBeacon) {
       const yDelta = distanceToBeacon - d;
@@ -285,22 +257,9 @@ const createGrid = (
         end: xUpper,
         type: "notBeacon",
       };
-      // if (debug) {
-      //   console.log("newLowerSpan");
-      //   console.log(newLowerSpan);
-      // }
       const lowerStart = rows[yLower];
       if (lowerStart) {
-        // if (debug) {
-        //   console.log("about to merge newLowerSpan into lowerStart");
-        //   console.log(lowerStart);
-        //   console.log(newLowerSpan);
-        // }
         mergeSpan(lowerStart, newLowerSpan);
-        // if (debug) {
-        //   console.log("lowerStart");
-        //   console.log(lowerStart);
-        // }
       } else {
         rows[yLower] = newLowerSpan;
       }
