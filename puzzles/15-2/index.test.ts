@@ -170,98 +170,132 @@ describe("15-2", () => {
         },
       });
     });
+    it("handles bug scenario 1", () => {
+      newSpan = { start: 9, end: 9, type: "notBeacon" };
+      nextSpan = { start: -1, end: 6, type: "notBeacon" };
+      startSpan = { start: -2, end: -2, type: "beacon" };
+      startSpan.next = nextSpan;
+      mergeSpan(startSpan, newSpan);
+      expect(startSpan).toEqual({
+        start: -2,
+        end: -2,
+        type: "beacon",
+        next: {
+          start: -1,
+          end: 6,
+          type: "notBeacon",
+          next: { start: 9, end: 9, type: "notBeacon" },
+        },
+      });
+    });
   });
   describe("createGrid", () => {
     it("handles the example row 1", () => {
-      expect(createGrid(exampleSensors.slice(0, 1), 0, 20)).toEqual({
-        minY: 11,
+      expect(createGrid(exampleSensors.slice(0, 1))).toEqual({
+        maxX: 9,
         maxY: 25,
-        11: {
-          end: 2,
-          start: 2,
-          type: "notBeacon",
-        },
-        12: {
-          end: 3,
-          start: 1,
-          type: "notBeacon",
-        },
-        13: {
-          end: 4,
-          start: 0,
-          type: "notBeacon",
-        },
-        14: {
-          end: 5,
-          start: -1,
-          type: "notBeacon",
-        },
-        15: {
-          end: -2,
-          start: -2,
-          type: "beacon",
-          next: {
-            end: 6,
+        minX: -5,
+        minY: 11,
+        rows: {
+          11: {
+            end: 2,
+            start: 2,
+            type: "notBeacon",
+          },
+          12: {
+            end: 3,
+            start: 1,
+            type: "notBeacon",
+          },
+          13: {
+            end: 4,
+            start: 0,
+            type: "notBeacon",
+          },
+          14: {
+            end: 5,
             start: -1,
             type: "notBeacon",
           },
-        },
-        16: {
-          end: 7,
-          start: -3,
-          type: "notBeacon",
-        },
-        17: {
-          end: 8,
-          start: -4,
-          type: "notBeacon",
-        },
-        18: {
-          end: 2,
-          start: 2,
-          type: "sensor",
-        },
-        19: {
-          end: 8,
-          start: -4,
-          type: "notBeacon",
-        },
-        20: {
-          end: 7,
-          start: -3,
-          type: "notBeacon",
-        },
-        21: {
-          end: 6,
-          start: -2,
-          type: "notBeacon",
-        },
-        22: {
-          end: 5,
-          start: -1,
-          type: "notBeacon",
-        },
-        23: {
-          end: 4,
-          start: 0,
-          type: "notBeacon",
-        },
-        24: {
-          end: 3,
-          start: 1,
-          type: "notBeacon",
-        },
-        25: {
-          end: 2,
-          start: 2,
-          type: "notBeacon",
+          15: {
+            end: -2,
+            start: -2,
+            type: "beacon",
+            next: {
+              end: 6,
+              start: -1,
+              type: "notBeacon",
+              next: undefined,
+            },
+          },
+          16: {
+            end: 7,
+            start: -3,
+            type: "notBeacon",
+          },
+          17: {
+            end: 8,
+            start: -4,
+            type: "notBeacon",
+          },
+          18: {
+            end: 1,
+            start: -5,
+            type: "notBeacon",
+            next: {
+              end: 2,
+              start: 2,
+              type: "sensor",
+              next: {
+                end: 9,
+                start: 3,
+                type: "notBeacon",
+                next: undefined,
+              },
+            },
+          },
+          19: {
+            end: 8,
+            start: -4,
+            type: "notBeacon",
+          },
+          20: {
+            end: 7,
+            start: -3,
+            type: "notBeacon",
+          },
+          21: {
+            end: 6,
+            start: -2,
+            type: "notBeacon",
+          },
+          22: {
+            end: 5,
+            start: -1,
+            type: "notBeacon",
+          },
+          23: {
+            end: 4,
+            start: 0,
+            type: "notBeacon",
+          },
+          24: {
+            end: 3,
+            start: 1,
+            type: "notBeacon",
+          },
+          25: {
+            end: 2,
+            start: 2,
+            type: "notBeacon",
+          },
         },
       });
     });
   });
   describe.skip("findDistressBeacon", () => {
     it("handles the example", () => {
-      expect(findDistressBeacon(exampleSensors, 0, 20)).toEqual({
+      expect(findDistressBeacon(createGrid(exampleSensors))).toEqual({
         x: 14,
         y: 11,
       });

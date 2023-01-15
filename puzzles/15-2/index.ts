@@ -1,5 +1,6 @@
 import { notEmpty } from "../common/array";
 import { locationEquals, Location } from "../common/location";
+import { renderGrid } from "./render";
 
 type Sensor = {
   name: number;
@@ -18,11 +19,13 @@ type Span = {
   type: SpanType;
   next?: Span;
 };
-// type Grid = Record<number, Span>;
+type Rows = Record<number, Span>;
 type Grid = {
   minY: number;
   maxY: number;
-  [y: number]: Span;
+  minX: number;
+  maxX: number;
+  rows: Rows;
 };
 
 const distanceBetween = (l1: Location, l2: Location): number => {
@@ -78,7 +81,7 @@ const overlapSpan = (targetSpan: Span, newSpan: Span): void => {
     B = targetSpan.end,
     C = newSpan.start,
     D = newSpan.end;
-  console.log(`A:${A}-B:${B} C:${C}-D:${D}`);
+  // console.log(`A:${A}-B:${B} C:${C}-D:${D}`);
   if (A === C) {
     if (B === D) {
       targetSpan.type = mergeType(targetSpan.type, newSpan.type);
@@ -99,7 +102,7 @@ const overlapSpan = (targetSpan: Span, newSpan: Span): void => {
       targetSpan.end = newSpan.start - 1;
       targetSpan.next = targetOverlap;
     } else {
-      console.log("overlap subset");
+      // console.log("overlap subset");
       const targetOverlap = trimSpan(
         targetSpan,
         newSpan.start,
@@ -140,9 +143,9 @@ const insertSpan = (currentHead: Span, newHead: Span): void => {
 
 const trimSpan = (s: Span, start: number, end: number): Span | undefined => {
   if (start > end || end < s.start || start > s.end) {
-    console.log("trimSpan bail");
-    console.log(s);
-    console.log(`${start} - ${end}`);
+    // console.log("trimSpan bail");
+    // console.log(s);
+    // console.log(`${start} - ${end}`);
     return;
   }
   return {
@@ -155,13 +158,14 @@ const removeDupes = (head: Span): void => {
   let current = head;
   let next = head.next;
   while (current && next) {
-    if (next.type === current.type) {
+    if (next.type === current.type && next.start === current.end + 1) {
       current.end = next.end;
       next = next.next;
       current.next = next;
       next = current.next;
     } else {
       current = next;
+      next = current.next;
     }
   }
 };
@@ -191,20 +195,21 @@ const removeDupes = (head: Span): void => {
  *
  * */
 
+const debugMerge = false;
 const mergeSpan = (startSpan: Span, newSpan: Span): void => {
-  console.log(startSpan);
-  console.log(newSpan);
+  debugMerge && console.log(startSpan);
+  debugMerge && console.log(newSpan);
 
   const newPre = trimSpan(newSpan, newSpan.start, startSpan.start - 1);
   const newPost = trimSpan(newSpan, startSpan.end + 1, newSpan.end);
   const newOverlap = trimSpan(newSpan, startSpan.start, startSpan.end);
   if (newOverlap) {
-    console.log("newOverlap " + JSON.stringify(newOverlap));
+    debugMerge && console.log("newOverlap " + JSON.stringify(newOverlap));
     overlapSpan(startSpan, newOverlap);
   }
 
   if (newPost) {
-    console.log("newPost " + JSON.stringify(newPost));
+    debugMerge && console.log("newPost " + JSON.stringify(newPost));
     if (startSpan.next) {
       mergeSpan(startSpan.next, newPost);
     } else {
@@ -214,24 +219,61 @@ const mergeSpan = (startSpan: Span, newSpan: Span): void => {
 
   // Do the pre last as it mutates the ordering
   if (newPre) {
-    console.log("newPre " + JSON.stringify(newPre));
+    debugMerge && console.log("newPre " + JSON.stringify(newPre));
     insertSpan(startSpan, newPre);
   }
 
   removeDupes(startSpan);
 };
+const findEndOfSpans = (s: Span): number => {
+  let current = s;
+  while (current.next) {
+    current = current.next;
+  }
+  return current.end;
+};
+const rowsToGrid = (rows: Rows): Grid => {
+  // console.log(rows);
+  const keys = Object.keys(rows)
+    .map((k) => parseInt(k))
+    .sort((a, b) => a - b);
+  // console.log(keys);
+  const values = Object.values(rows);
+  const minX = values.reduce(
+    (prev, curr) => Math.min(prev, curr.start),
+    Infinity
+  );
+  const maxX = values.reduce(
+    (prev, curr) => Math.max(prev, findEndOfSpans(curr)),
+    -Infinity
+  );
+
+  return {
+    rows,
+    minX,
+    maxX,
+    minY: keys[0],
+    maxY: keys.slice(-1)[0],
+  };
+};
 const createGrid = (
-  sensors: Sensor[],
-  minValue: number = 0,
-  maxValue: number = 4000000
-) => {
-  const result: Grid = { minY: Infinity, maxY: -Infinity };
+  sensors: Sensor[]
+  // minValue: number = 0,
+  // maxValue: number = 4000000
+): Grid => {
+  const rows: Rows = {};
   sensors.forEach((sensor) => {
+    let debug = false;
+    if (sensor.name === 2) {
+      debug = true;
+      console.log("Sensor 2");
+      console.log(sensor);
+    }
     const distanceToBeacon = sensor.beaconDistance;
     // let y = sensor.location.y - distanceToBeacon;
     // const yEnd = sensor.location.y + distanceToBeacon;
     let d = 0;
-    while (d < distanceToBeacon) {
+    while (d <= distanceToBeacon) {
       const yDelta = distanceToBeacon - d;
       const xLower = sensor.location.x - d;
       const xUpper = sensor.location.x + d;
@@ -243,12 +285,24 @@ const createGrid = (
         end: xUpper,
         type: "notBeacon",
       };
-      const lowerStart = result[yLower];
+      if (debug) {
+        console.log("newLowerSpan");
+        console.log(newLowerSpan);
+      }
+      const lowerStart = rows[yLower];
       if (lowerStart) {
+        if (debug) {
+          console.log("about to merge newLowerSpan into lowerStart");
+          console.log(lowerStart);
+          console.log(newLowerSpan);
+        }
         mergeSpan(lowerStart, newLowerSpan);
+        if (debug) {
+          console.log("lowerStart");
+          console.log(lowerStart);
+        }
       } else {
-        result[yLower] = newLowerSpan;
-        result.minY = Math.min(result.minY, yLower);
+        rows[yLower] = newLowerSpan;
       }
 
       // Add a span 'below' the sensor
@@ -259,12 +313,11 @@ const createGrid = (
         type: "notBeacon",
       };
 
-      const upperStart = result[yUpper];
+      const upperStart = rows[yUpper];
       if (upperStart) {
         mergeSpan(upperStart, newUpperSpan);
       } else {
-        result[yUpper] = newUpperSpan;
-        result.maxY = Math.max(result.maxY, yUpper);
+        rows[yUpper] = newUpperSpan;
       }
 
       d++;
@@ -277,11 +330,11 @@ const createGrid = (
       type: "sensor",
     };
     const ySensor = sensor.location.y;
-    const sensorStart = result[ySensor];
+    const sensorStart = rows[ySensor];
     if (sensorStart) {
       mergeSpan(sensorStart, newSensorSpan);
     } else {
-      result[ySensor] = newSensorSpan;
+      rows[ySensor] = newSensorSpan;
     }
 
     // Add the span for the beacon
@@ -292,22 +345,55 @@ const createGrid = (
       type: "beacon",
     };
     const yBeacon = sensor.nearestBeacon.y;
-    const beaconStart = result[yBeacon];
+    const beaconStart = rows[yBeacon];
     if (beaconStart) {
       mergeSpan(beaconStart, newBeaconSpan);
     } else {
-      result[yBeacon] = newBeaconSpan;
+      rows[yBeacon] = newBeaconSpan;
     }
+    renderGrid(rowsToGrid(rows));
   });
 
-  return result;
+  return rowsToGrid(rows);
 };
 
+const searchForUnknown = (s: Span, minValue: number, maxValue: number) => {
+  if (s.start > minValue) {
+    return s.start - 1;
+  }
+  let current: Span | undefined = s;
+
+  while (current) {
+    if (current.type === "empty") {
+      return current.start;
+    }
+    const next: Span | undefined = current.next;
+    if (next === undefined && current.end <= maxValue) {
+      return current.end + 1;
+    }
+    if (next && next.start > current.end + 1) {
+      return current.end + 1;
+    }
+    current = next;
+  }
+  return null;
+};
 const findDistressBeacon = (
-  sensors: Sensor[],
+  grid: Grid,
   minValue: number = 0,
   maxValue: number = 4000000
 ): Location => {
+  let y = minValue;
+  while (y < maxValue) {
+    const row = grid.rows[y];
+    const distressBeaconX = searchForUnknown(row, minValue, maxValue);
+    if (distressBeaconX !== null) {
+      console.log(`Found distress beacon at ${distressBeaconX},${y}`);
+      console.log(row);
+      return { x: distressBeaconX, y };
+    }
+    y++;
+  }
   return { x: 0, y: 0 };
 };
 export {
