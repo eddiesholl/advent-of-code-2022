@@ -264,11 +264,11 @@ const createGrid = (
   const rows: Rows = {};
   sensors.forEach((sensor) => {
     let debug = false;
-    if (sensor.name === 2) {
-      debug = true;
-      console.log("Sensor 2");
-      console.log(sensor);
-    }
+    // if (sensor.name === 2) {
+    //   debug = true;
+    //   console.log("Sensor 2");
+    //   console.log(sensor);
+    // }
     const distanceToBeacon = sensor.beaconDistance;
     // let y = sensor.location.y - distanceToBeacon;
     // const yEnd = sensor.location.y + distanceToBeacon;
@@ -285,22 +285,22 @@ const createGrid = (
         end: xUpper,
         type: "notBeacon",
       };
-      if (debug) {
-        console.log("newLowerSpan");
-        console.log(newLowerSpan);
-      }
+      // if (debug) {
+      //   console.log("newLowerSpan");
+      //   console.log(newLowerSpan);
+      // }
       const lowerStart = rows[yLower];
       if (lowerStart) {
-        if (debug) {
-          console.log("about to merge newLowerSpan into lowerStart");
-          console.log(lowerStart);
-          console.log(newLowerSpan);
-        }
+        // if (debug) {
+        //   console.log("about to merge newLowerSpan into lowerStart");
+        //   console.log(lowerStart);
+        //   console.log(newLowerSpan);
+        // }
         mergeSpan(lowerStart, newLowerSpan);
-        if (debug) {
-          console.log("lowerStart");
-          console.log(lowerStart);
-        }
+        // if (debug) {
+        //   console.log("lowerStart");
+        //   console.log(lowerStart);
+        // }
       } else {
         rows[yLower] = newLowerSpan;
       }
@@ -351,7 +351,7 @@ const createGrid = (
     } else {
       rows[yBeacon] = newBeaconSpan;
     }
-    renderGrid(rowsToGrid(rows));
+    // renderGrid(rowsToGrid(rows));
   });
 
   return rowsToGrid(rows);
