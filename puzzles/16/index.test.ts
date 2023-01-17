@@ -7,20 +7,32 @@ describe("16", () => {
       AA: { name: "AA", rate: 1, linked: ["BB"] },
       BB: { name: "BB", rate: 2, linked: ["AA"] },
     };
+    let initialState: GameState;
+    beforeEach(() => {
+      initialState = {
+        t: 1,
+        players: { me: { name: "me", played: false, location: "AA" } },
+        open: new Set<string>(),
+        visited: new Set<string>(),
+        rate: 0,
+        released: 0,
+        usefulClosedValves: new Set(["AA", "BB"]),
+      };
+    });
 
     it("bails when time is up", () => {
-      expect(recurse(valveMapAABB, [], 1, 3, 0, {})).toEqual({
+      expect(recurse(valveMapAABB, initialState, [], [], 1, 3, 0, {})).toEqual({
         sequence: [
           {
-            op: { kind: "open", target: "AA" },
+            ops: [{ kind: "open", player: "me", target: "AA" }],
             state: {
-              location: "AA",
+              players: { me: { name: "me", played: true, location: "AA" } },
               rate: 0,
               released: 0,
               t: 1,
               visited: new Set(),
-              open: new Set(),
-              usefulClosedValves: new Set(["AA", "BB"]),
+              open: new Set(["AA"]),
+              usefulClosedValves: new Set(["BB"]),
             },
           },
         ],
@@ -28,13 +40,22 @@ describe("16", () => {
       });
     });
     it("opens AA and BB", () => {
-      const terminalState = recurse(valveMapAABB, [], 5, 3, 0, {});
+      const terminalState = recurse(
+        valveMapAABB,
+        initialState,
+        [],
+        [],
+        5,
+        3,
+        0,
+        {}
+      );
       expect(terminalState.sequence.length).toEqual(5);
       // terminalState.sequence.map(renderMinute);
       expect(terminalState.sequence[4]).toEqual({
-        op: { kind: "noop" },
+        ops: [{ kind: "noop", player: "me" }],
         state: {
-          location: "BB",
+          players: { me: { name: "me", location: "BB", played: true } },
           open: new Set(["AA", "BB"]),
           visited: new Set(["BB"]),
           t: 5,
@@ -47,7 +68,7 @@ describe("16", () => {
     });
   });
   describe("findBestValvePath", () => {
-    it("handles the example input", () => {
+    it.only("handles the example input", () => {
       expect(
         findBestValvePath(parseLines(readLines(__dirname, "example.txt")), 30)
           .released
