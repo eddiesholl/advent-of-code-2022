@@ -181,15 +181,15 @@ const recurse = (
 ): TerminalState => {
   const minutesLeft = endTime - currentState.t;
   const totalReleased = currentState.released;
-  const openString = Array.from(currentState.open).sort().join("-");
-  const interesting =
-    currentState.t === 14 &&
-    openString === "BB-DD-JJ" &&
-    currentState.players["guide"].location === "EE";
+  // const openString = Array.from(currentState.open).sort().join("-");
+  // const interesting =
+  //   currentState.t === 14 &&
+  //   openString === "BB-DD-JJ" &&
+  //   currentState.players["guide"].location === "EE";
   // console.log("minutesLeft " + minutesLeft);
-  if (interesting) {
-    console.log("intersting");
-  }
+  // if (interesting) {
+  //   console.log("intersting");
+  // }
   if (minutesLeft < 0) {
     return {
       sequence: minutes,
@@ -199,9 +199,9 @@ const recurse = (
 
   const bestPossibleTotal = totalReleased + (minutesLeft + 1) * maxFlowRate;
   if (bestPossibleTotal < bestTotalSoFar) {
-    if (interesting) {
-      console.log("bail 2");
-    }
+    // if (interesting) {
+    //   console.log("bail 2");
+    // }
     return {
       sequence: minutes,
       released: totalReleased,
@@ -209,16 +209,16 @@ const recurse = (
   }
 
   const possibleOps = getPossibleOps(currentState, valveMap);
-  if (interesting) {
-    console.log("possibleOps");
-    console.log(possibleOps);
-  }
+  // if (interesting) {
+  //   console.log("possibleOps");
+  //   console.log(possibleOps);
+  // }
 
   const allOutcomes: TerminalState[] = [];
   if (possibleOps === null) {
-    if (interesting) {
-      console.log("null");
-    }
+    // if (interesting) {
+    //   console.log("null");
+    // }
     const visitBagId = `${currentState.t}-${Object.values(currentState.players)
       .map((p) => p.location)
       .sort()
@@ -229,14 +229,14 @@ const recurse = (
       visitBagMatch.rate > currentState.rate &&
       visitBagMatch.released > currentState.released
     ) {
-      if (interesting) {
-        console.log("bail 1");
-      }
+      // if (interesting) {
+      //   console.log("bail 1");
+      // }
       // Allow bailing early based on possible better path to here
-      // return {
-      //   sequence: minutes,
-      //   released: totalReleased,
-      // };
+      return {
+        sequence: minutes,
+        released: totalReleased,
+      };
     } else {
       visitBag[visitBagId] = {
         released: currentState.released,
@@ -259,15 +259,18 @@ const recurse = (
     allOutcomes.push(outcome);
   } else {
     let newBestTotalSoFar = bestTotalSoFar;
-    if (interesting) {
-      console.log("ops");
-    }
+    // if (interesting) {
+    //   console.log("ops");
+    // }
 
     possibleOps.forEach((op, ix) => {
       // console.log("recursing for op " + op.kind);
-      if (interesting) {
-        console.log(op);
+      if (currentState.t < 3) {
+        console.log(`${currentState.t}-${ix}`);
       }
+      // if (interesting) {
+      //   console.log(op);
+      // }
 
       const nextState = nextStateFrom(op, currentState, valveMap);
       const outcome = recurse(
@@ -283,10 +286,10 @@ const recurse = (
 
       allOutcomes.push(outcome);
       newBestTotalSoFar = Math.max(newBestTotalSoFar, outcome.released);
-      if (interesting) {
-        console.log(outcome.sequence.length);
-        console.log(outcome.released);
-      }
+      // if (interesting) {
+      //   console.log(outcome.sequence.length);
+      //   console.log(outcome.released);
+      // }
     });
   }
   allOutcomes.sort((a, b) => b.released - a.released);
