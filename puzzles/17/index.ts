@@ -174,6 +174,26 @@ const landRock = ({ chamber, activeRock }: GameState) => {
 
 const highestRock = (chamber: Chamber) => chamber.length - 1;
 
+const findCycles = (bumps: number[]) => {
+  let i = 0;
+  const seqLength = 163;
+  while (i < bumps.length - seqLength) {
+    const seq = bumps.slice(i, i + seqLength);
+    const nextIndex = bumps.findIndex((n, fix, self) => {
+      return (
+        fix > i &&
+        fix < bumps.length - seqLength &&
+        self
+          .slice(fix, fix + seqLength)
+          .every((s2, s2i, self) => seq[s2i] === self[s2i])
+      );
+    });
+    if (nextIndex > -1) {
+      console.log(`seq ${seq} at ${i} then ${nextIndex}`);
+    }
+    i++;
+  }
+};
 const processRocks = (iterations: number, jets: Jet[]) => {
   let i = 1;
   let r = 0;
@@ -183,13 +203,18 @@ const processRocks = (iterations: number, jets: Jet[]) => {
   let activeRock = createRock(r, { x: 2, y: 3 });
   let currentState = { chamber, activeRock };
 
+  const heightBumps: number[] = [];
   while (i <= iterations) {
     while (rockFalling(currentState)) {
       applyGas(currentState, jets[j]);
       j = (j + 1) % jl;
       applyFall(currentState);
       if (rockLanded(currentState)) {
+        const previousHeight = highestRock(currentState.chamber);
         landRock(currentState);
+        const newHeight = highestRock(currentState.chamber);
+        // console.log(newHeight - previousHeight);
+        heightBumps.push(newHeight - previousHeight);
         r = (r + 1) % 5;
         currentState = {
           chamber: cloneChamber(currentState.chamber),
@@ -208,6 +233,8 @@ const processRocks = (iterations: number, jets: Jet[]) => {
     }
     i++;
   }
+  // console.log(heightBumps);
+  findCycles(heightBumps);
   return highestRock(currentState.chamber) + 1;
 };
 const parseJets = (lines: string[]): Jet[] => {
