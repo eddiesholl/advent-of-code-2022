@@ -1,5 +1,5 @@
 import { readLines } from "../common/input";
-import { countFaces, parseLines } from "./index";
+import { countExternalFaces, countFaces, parseLines } from "./index";
 
 describe("18", () => {
   describe("countFaces", () => {
@@ -15,6 +15,13 @@ describe("18", () => {
       expect(
         countFaces(parseLines(readLines(__dirname, "example.txt")))
       ).toEqual(64);
+    });
+  });
+  describe("countExternalFaces", () => {
+    it("handles the example", () => {
+      expect(
+        countExternalFaces(parseLines(readLines(__dirname, "example.txt")))
+      ).toEqual(58);
     });
   });
 });

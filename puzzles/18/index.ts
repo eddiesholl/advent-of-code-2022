@@ -38,4 +38,87 @@ const parseLines = (lines: string[]): Point[] =>
     .filter(notEmpty);
 
 const b = () => void 0;
-export { parseLines, countFaces };
+type Mover = (p: Point) => Point;
+type Checker = (n: number) => boolean;
+const isNeighbour = (mover: Mover) => (p: Point) => (ids: Set<string>) => ids;
+type Bounds = {
+  xMin: number;
+  yMin: number;
+  zMin: number;
+  xMax: number;
+  yMax: number;
+  zMax: number;
+};
+const getNeighbours = (p: Point) => [
+  { ...p, x: p.x - 1 },
+  { ...p, x: p.x + 1 },
+  { ...p, y: p.y - 1 },
+  { ...p, y: p.y + 1 },
+  { ...p, z: p.z - 1 },
+  { ...p, z: p.z + 1 },
+];
+const isPointValid = (bounds: Bounds) => (p: Point) =>
+  p.x >= bounds.xMin - 1 &&
+  p.x <= bounds.xMax + 1 &&
+  p.y >= bounds.yMin - 1 &&
+  p.y <= bounds.yMax + 1 &&
+  p.z >= bounds.zMin - 1 &&
+  p.z <= bounds.zMax + 1;
+const pointEquals = (p1: Point) => (p2: Point) =>
+  p1.x === p2.x && p1.y === p2.y && p1.z === p2.z;
+const countExternalFaces = (points: Point[]): number => {
+  const bounds: Bounds = points.reduce(
+    (prev: Bounds, curr: Point) => {
+      return {
+        xMin: Math.min(prev.xMin, curr.x),
+        yMin: Math.min(prev.yMin, curr.y),
+        zMin: Math.min(prev.zMin, curr.z),
+        xMax: Math.max(prev.xMax, curr.x),
+        yMax: Math.max(prev.yMax, curr.y),
+        zMax: Math.max(prev.zMax, curr.z),
+      };
+    },
+    {
+      xMin: Infinity,
+      yMin: Infinity,
+      zMin: Infinity,
+      xMax: -Infinity,
+      yMax: -Infinity,
+      zMax: -Infinity,
+    }
+  );
+  // console.log(bounds);
+  const start = { x: bounds.xMin - 1, y: bounds.yMin - 1, z: bounds.zMin - 1 };
+  const queue = [start];
+  const outsideFaces: Point[] = [];
+  const visited: Point[] = [];
+  while (queue.length > 0) {
+    // console.log(queue);
+    const current = queue.shift();
+    // console.log(queue);
+    if (!current) {
+      continue;
+    }
+    visited.push(current);
+    // console.log("current");
+    // console.log(current);
+    // console.log(visited.length);
+    const neighbours = getNeighbours(current).filter(isPointValid(bounds));
+    // console.log(neighbours);
+    neighbours.forEach((n) => {
+      if (points.find(pointEquals(n))) {
+        // console.log("face");
+        // console.log(n);
+        outsideFaces.push(n);
+      } else {
+        if (!visited.find(pointEquals(n)) && !queue.find(pointEquals(n))) {
+          // console.log("queue");
+          // console.log(n);
+          queue.push(n);
+        }
+      }
+    });
+  }
+  return outsideFaces.length;
+};
+export { parseLines, countFaces, countExternalFaces };
