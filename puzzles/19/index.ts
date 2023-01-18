@@ -3,8 +3,8 @@ import { renderMinute } from "./render";
 import { notEmpty } from "../common/array";
 import { sumValues } from "../common/math";
 
-const FINAL_MINUTE = 5;
-// const FINAL_MINUTE = 24;
+// const FINAL_MINUTE = 10;
+const FINAL_MINUTE = 24;
 
 type RobotCost = {
   ore: number;
@@ -39,6 +39,7 @@ type WaitAction = {
   robot: RobotName;
   cost: RobotCost;
   minutes: number;
+  readyAt: number;
 };
 type Action = Noop | BuildAction | WaitAction;
 type Minute = {
@@ -109,12 +110,15 @@ const buildOrWaitAction = (
   robot: RobotName,
   state: GameState
 ): Action | null => {
+  // console.log("buildOrWaitAction " + robot);
   const turnsUntilRobot = turnsUntilAfford(cost, state);
   // console.log("turnsUntilAfford = " + turnsUntilRobot);
   if (isNaN(turnsUntilRobot) || turnsUntilRobot === Infinity) {
+    // console.log("bail nan");
     return null;
   }
   if (state.t + turnsUntilRobot > FINAL_MINUTE) {
+    // console.log("bail final_minute");
     return null;
   }
   return turnsUntilRobot <= 0
@@ -128,6 +132,7 @@ const buildOrWaitAction = (
         robot: robot,
         cost,
         minutes: turnsUntilRobot,
+        readyAt: state.t + turnsUntilRobot,
       };
 };
 
@@ -140,7 +145,8 @@ const consume = (prevState: GameState, cost: RobotCost): GameState => {
   };
 };
 const updateState = (prevState: GameState, action: Action): GameState => {
-  const deltaT = action.kind === "wait" ? action.minutes : 1;
+  const deltaT = action.kind === "wait" ? action.minutes + 1 : 1;
+  // console.log("deltaT " + deltaT);
   const nextState = {
     ...prevState,
     t: prevState.t + deltaT,
@@ -161,6 +167,7 @@ const updateState = (prevState: GameState, action: Action): GameState => {
   } else if (action.robot === "ore") {
     nextState.oreRobots += 1;
   }
+  // console.log(nextState);
   return consume(nextState, action.cost);
 };
 const definitelyBetter = (candidate: GameState, baseline: GameState) => {
@@ -185,40 +192,43 @@ const recurse = (
   blueprint: Blueprint,
   gameState: GameState,
   snapshots: Snapshot[],
-  currentTime: number,
   bestResults: BestResults,
   maxCost: MaxCost
 ): TerminalState | undefined => {
+  const currentTime = gameState.t;
+  // console.log(`t = ${currentTime}`);
+  // console.log(gameState);
   const currentTerminal = { snapshots, finalState: gameState };
-  if (currentTime > FINAL_MINUTE || gameState.t > FINAL_MINUTE) {
+  if (currentTime === FINAL_MINUTE) {
     return currentTerminal;
   }
-  // console.log(currentTime);
 
   const actions: (Action | null)[] = [];
-  // actions.push(buildOrWaitAction(blueprint.geodeRobotCost, "geode", gameState));
-  // if (gameState.obsidianRobots < maxCost.obsidian) {
-  //   actions.push(
-  //     buildOrWaitAction(blueprint.obsidianRobotCost, "obsidian", gameState)
-  //   );
-  // }
+  actions.push(buildOrWaitAction(blueprint.geodeRobotCost, "geode", gameState));
+  if (gameState.obsidianRobots < maxCost.obsidian) {
+    actions.push(
+      buildOrWaitAction(blueprint.obsidianRobotCost, "obsidian", gameState)
+    );
+  } else {
+    // console.log("maxxed obsidian");
+  }
   if (gameState.clayRobots < maxCost.clay) {
     actions.push(buildOrWaitAction(blueprint.clayRobotCost, "clay", gameState));
+  } else {
+    // console.log("maxxed clay");
   }
-  // if (gameState.oreRobots < maxCost.ore) {
-  //   actions.push(buildOrWaitAction(blueprint.oreRobotCost, "ore", gameState));
-  // }
-
-  console.log("time " + currentTime);
-  console.log(actions);
+  if (gameState.oreRobots < maxCost.ore) {
+    actions.push(buildOrWaitAction(blueprint.oreRobotCost, "ore", gameState));
+  } else {
+    // console.log("maxxed ore");
+  }
+  // console.log(actions);
   // actions.push({ kind: "noop" });
   const possibleTerminals: (TerminalState | undefined)[] = [];
   actions.filter(notEmpty).forEach((action) => {
+    // console.log(`t ${currentTime} action:`);
     // console.log(action);
-    // if (currentTime < 5) {
-    //   console.log(currentTime);
-    // }
-    if (action.kind === "wait" && action.minutes > FINAL_MINUTE - currentTime) {
+    if (action.kind === "wait" && action.readyAt > FINAL_MINUTE) {
       return currentTerminal;
     }
     const nextState = updateState(gameState, action);
@@ -228,11 +238,11 @@ const recurse = (
     }
     const currentBestForT = bestResults[currentTime];
     if (currentBestForT && definitelyBetter(currentBestForT, nextState)) {
-      // console.log("bailing at " + currentTime);
+      console.log("bailing at " + currentTime);
       return currentTerminal;
     }
     if (definitelyBetter(nextState, currentBestForT)) {
-      // console.log("found better at " + currentTime);
+      console.log("found better at " + currentTime);
       bestResults[currentTime] = nextState;
     }
     const snapshot = {
@@ -245,14 +255,13 @@ const recurse = (
       blueprint,
       nextState,
       snapshots.concat(snapshot),
-      nextState.t,
       bestResults,
       maxCost
     );
     possibleTerminals.push(terminal);
   });
-  console.log("possibleTerminals " + currentTime);
-  console.log(possibleTerminals);
+  // console.log("possibleTerminals " + currentTime);
+  // console.log(possibleTerminals);
   return possibleTerminals
     .filter(notEmpty)
     .sort((a, b) => b.finalState.geodes - a.finalState.geodes)[0];
@@ -333,12 +342,12 @@ const processBlueprints = (blueprints: Blueprint[]): number => {
   return blueprints
     .slice(0, 1)
     .map((blueprint) => {
+      console.log(blueprint);
       const maxCost = maxCostForBlueprint(blueprint);
       const maxGeodesOpened = recurse(
         blueprint,
         startingState,
         [],
-        1,
         {},
         maxCost
       );
@@ -366,4 +375,5 @@ export {
   GameState,
   updateState,
   snapshotToMinutes,
+  WaitAction,
 };

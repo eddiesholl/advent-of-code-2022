@@ -5,6 +5,7 @@ import {
   processBlueprints,
   snapshotToMinutes,
   updateState,
+  WaitAction,
 } from "./index";
 
 describe("19", () => {
@@ -20,7 +21,91 @@ describe("19", () => {
     geodeRobots: 0,
   };
   describe("snapshotToMinutes", () => {
-    it.only("it will convert a wait for 2", () => {
+    it("handles example 1 output", () => {
+      const input = {
+        t: 1,
+        after: {
+          t: 4,
+          ore: 1,
+          oreRobots: 1,
+          clay: 0,
+          clayRobots: 1,
+          obsidian: 0,
+          obsidianRobots: 0,
+          geodes: 0,
+          geodeRobots: 0,
+        },
+        before: startingState,
+        action: {
+          kind: "wait",
+          robot: "clay",
+          cost: { ore: 2, clay: 0, obsidian: 0 },
+          minutes: 2,
+          readyAt: 3,
+        } as WaitAction,
+      };
+      const result = snapshotToMinutes(input);
+      expect(result).toEqual([
+        {
+          action: {
+            kind: "noop",
+          },
+          finalState: {
+            clay: 0,
+            clayRobots: 0,
+            geodeRobots: 0,
+            geodes: 0,
+            obsidian: 0,
+            obsidianRobots: 0,
+            ore: 1,
+            oreRobots: 1,
+            t: 1,
+          },
+          t: 1,
+        },
+        {
+          action: {
+            kind: "noop",
+          },
+          finalState: {
+            clay: 0,
+            clayRobots: 0,
+            geodeRobots: 0,
+            geodes: 0,
+            obsidian: 0,
+            obsidianRobots: 0,
+            ore: 2,
+            oreRobots: 1,
+            t: 1,
+          },
+          t: 2,
+        },
+        {
+          action: {
+            cost: {
+              clay: 0,
+              obsidian: 0,
+              ore: 2,
+            },
+            kind: "build",
+            robot: "clay",
+          },
+          finalState: {
+            clay: 0,
+            clayRobots: 1,
+            geodeRobots: 0,
+            geodes: 0,
+            obsidian: 0,
+            obsidianRobots: 0,
+            ore: 1,
+            oreRobots: 1,
+            t: 4,
+          },
+          t: 3,
+        },
+      ]);
+    });
+    it("it will convert a wait for 2", () => {
       expect(
         snapshotToMinutes({
           t: 1,
@@ -36,6 +121,7 @@ describe("19", () => {
             robot: "clay",
             cost: { ore: 2, clay: 0, obsidian: 0 },
             minutes: 1,
+            readyAt: 2,
           },
         })
       ).toEqual([
@@ -64,23 +150,36 @@ describe("19", () => {
       geodeRobotCost: { ore: 1, clay: 2, obsidian: 3 },
     };
 
-    it.skip("handles a build action", () => {
+    it("handles a build action", () => {
       expect(
-        updateState(startingState, {
-          kind: "build",
-          cost: blueprint.clayRobotCost,
-          robot: "clay",
-        })
+        updateState(
+          {
+            t: 3,
+            ore: 3,
+            oreRobots: 1,
+            clay: 0,
+            clayRobots: 0,
+            obsidian: 0,
+            obsidianRobots: 0,
+            geodes: 0,
+            geodeRobots: 0,
+          },
+          {
+            kind: "build",
+            cost: blueprint.clayRobotCost,
+            robot: "clay",
+          }
+        )
       ).toEqual({
-        t: 6,
-        ore: 5,
-        clay: 9,
-        geodes: 13,
-        obsidian: 11,
+        t: 4,
+        ore: 2,
+        clay: 0,
+        geodes: 0,
+        obsidian: 0,
         oreRobots: 1,
-        clayRobots: 3,
-        obsidianRobots: 3,
-        geodeRobots: 4,
+        clayRobots: 1,
+        obsidianRobots: 0,
+        geodeRobots: 0,
       });
     });
     it("handles a wait action at the start", () => {
@@ -90,9 +189,10 @@ describe("19", () => {
           cost: blueprint.clayRobotCost,
           robot: "clay",
           minutes: 2,
+          readyAt: 3,
         })
       ).toEqual({
-        t: 3,
+        t: 4,
         ore: 1,
         clay: 0,
         geodes: 0,
