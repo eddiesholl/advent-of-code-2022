@@ -87,33 +87,22 @@ const countExternalFaces = (points: Point[]): number => {
       zMax: -Infinity,
     }
   );
-  // console.log(bounds);
   const start = { x: bounds.xMin - 1, y: bounds.yMin - 1, z: bounds.zMin - 1 };
   const queue = [start];
   const outsideFaces: Point[] = [];
   const visited: Point[] = [];
   while (queue.length > 0) {
-    // console.log(queue);
     const current = queue.shift();
-    // console.log(queue);
     if (!current) {
       continue;
     }
     visited.push(current);
-    // console.log("current");
-    // console.log(current);
-    // console.log(visited.length);
     const neighbours = getNeighbours(current).filter(isPointValid(bounds));
-    // console.log(neighbours);
     neighbours.forEach((n) => {
       if (points.find(pointEquals(n))) {
-        // console.log("face");
-        // console.log(n);
         outsideFaces.push(n);
       } else {
         if (!visited.find(pointEquals(n)) && !queue.find(pointEquals(n))) {
-          // console.log("queue");
-          // console.log(n);
           queue.push(n);
         }
       }

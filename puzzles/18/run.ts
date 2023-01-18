@@ -7,6 +7,7 @@ import { parseLines, countFaces, countExternalFaces } from "./index";
 
 // Part 2
 const score = countExternalFaces(
-  parseLines(readLines(__dirname, "example.txt"))
+  // parseLines(readLines(__dirname, "example.txt"))
+  parseLines(readLines(__dirname, "input.txt"))
 );
 console.log("Score is " + score);
