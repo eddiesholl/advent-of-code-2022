@@ -54,8 +54,8 @@ const insertBefore = (newItem: NumberWrapper, head: NumberWrapper) => {
   newItem.next = head;
   head.previous = newItem;
 };
-const shiftRight = (shiftTarget: NumberWrapper): void => {
-  const shiftCount = shiftTarget.value;
+const shiftRight = (shiftTarget: NumberWrapper, totalCount: number): void => {
+  const shiftCount = shiftTarget.value % (totalCount - 1);
   // const shiftCount = shiftTarget.value % (numberCount - 1);
   let i = 0;
   let newHead = unlink(shiftTarget);
@@ -70,8 +70,8 @@ const shiftRight = (shiftTarget: NumberWrapper): void => {
   // console.log(renderLinkedList(shiftTarget));
 };
 // [3,2,-1,4] -> [3,2,4] -> [3,-1,2,4]
-const shiftLeft = (shiftTarget: NumberWrapper): void => {
-  const shiftCount = shiftTarget.value;
+const shiftLeft = (shiftTarget: NumberWrapper, totalCount: number): void => {
+  const shiftCount = shiftTarget.value % (totalCount - 1);
   let i = 0;
   let newHead = unlink(shiftTarget);
   while (i > shiftCount) {
@@ -83,15 +83,16 @@ const shiftLeft = (shiftTarget: NumberWrapper): void => {
 
 const mixIndex = (
   head: NumberWrapper,
-  originalIndex: number
+  originalIndex: number,
+  totalCount: number
 ): NumberWrapper => {
   const target = findTarget(head, originalIndex);
   if (target.value === 0) {
     return head;
   } else if (target.value > 0) {
-    shiftRight(target);
+    shiftRight(target, totalCount);
   } else {
-    shiftLeft(target);
+    shiftLeft(target, totalCount);
   }
   return head;
 };
@@ -105,14 +106,19 @@ const listToArray = (head: NumberWrapper): number[] => {
   return result;
 };
 
-const mixFile = (numbers: number[]): number[] => {
-  let head = buildList(numbers);
-  const numberCount = numbers.length;
-  let n = 0;
-  while (n < numberCount) {
-    head = mixIndex(head, n);
-
-    n++;
+const mixFile = (numbers: number[], times = 1, multiply?: number): number[] => {
+  const numbersToMix = multiply ? numbers.map((n) => n * multiply) : numbers;
+  let head = buildList(numbersToMix);
+  const numberCount = numbersToMix.length;
+  let mixCount = 0;
+  while (mixCount < times) {
+    console.log(mixCount);
+    let n = 0;
+    while (n < numberCount) {
+      head = mixIndex(head, n, numberCount);
+      n++;
+    }
+    mixCount++;
   }
   return listToArray(head);
 };

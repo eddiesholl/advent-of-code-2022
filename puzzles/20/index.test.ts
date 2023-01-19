@@ -18,14 +18,13 @@ describe("20", () => {
       start = buildList([1, 2, -3, 3, -2, 0, 4]);
     });
     it("handles shifting once", () => {
-      shiftRight(start);
+      shiftRight(start, 7);
       console.log(start.value);
       expect(listToArray(start)).toEqual([1, -3, 3, -2, 0, 4, 2]);
     });
     it("handles value is multiple of list length", () => {
       start = buildList([10, 2, 3, 4, 5]);
-      shiftRight(start);
-      console.log(start.value);
+      shiftRight(start, 5);
       expect(listToArray(start)).toEqual([10, 4, 5, 2, 3]);
     });
   });
@@ -34,13 +33,13 @@ describe("20", () => {
     it("handles shifting left", () => {
       start = buildList([1, -3, 2, 3, -2, 0, 4]);
 
-      shiftLeft(start.next); // -3
+      shiftLeft(start.next, 7); // -3
       console.log(start.value);
       expect(listToArray(start)).toEqual([1, 2, 3, -2, -3, 0, 4]);
     });
     it("handles value is multiple of list length", () => {
       start = buildList([-10, 2, 3, 4, 5]);
-      shiftLeft(start);
+      shiftLeft(start, 5);
       console.log(start.value);
       expect(listToArray(start)).toEqual([-10, 4, 5, 2, 3]);
     });
@@ -52,7 +51,7 @@ describe("20", () => {
     });
     it("handles the first example", () => {
       exampleHead = buildList([1, 2, -3, 3, -2, 0, 4]);
-      const result = listToArray(mixIndex(exampleHead, 0));
+      const result = listToArray(mixIndex(exampleHead, 0, 7));
       expect(result).toEqual([1, -3, 3, -2, 0, 4, 2]);
       expect(renderLinkedList(exampleHead)).toEqual(
         "2 -> 1 -> -3 | 1 -> -3 -> 3 | -3 -> 3 -> -2 | 3 -> -2 -> 0 | -2 -> 0 -> 4 | 0 -> 4 -> 2 | 4 -> 2 -> 1"
@@ -60,7 +59,7 @@ describe("20", () => {
     });
     it("handles the second example", () => {
       exampleHead = buildList([2, 1, -3, 3, -2, 0, 4]);
-      const result = listToArray(mixIndex(exampleHead, 0));
+      const result = listToArray(mixIndex(exampleHead, 0, 7));
       expect(result).toEqual([2, 3, -2, 0, 4, 1, -3]);
       expect(renderLinkedList(exampleHead)).toEqual(
         "-3 -> 2 -> 3 | 2 -> 3 -> -2 | 3 -> -2 -> 0 | -2 -> 0 -> 4 | 0 -> 4 -> 1 | 4 -> 1 -> -3 | 1 -> -3 -> 2"
@@ -68,27 +67,27 @@ describe("20", () => {
     });
     it("handles the third example", () => {
       exampleHead = buildList([1, -3, 2, 3, -2, 0, 4]);
-      const result = listToArray(mixIndex(exampleHead, 1));
+      const result = listToArray(mixIndex(exampleHead, 1, 7));
       expect(result).toEqual([1, 2, 3, -2, -3, 0, 4]);
     });
     it("handles the fourth example", () => {
       exampleHead = buildList([1, 2, 3, -2, -3, 0, 4]);
-      const result = listToArray(mixIndex(exampleHead, 2));
+      const result = listToArray(mixIndex(exampleHead, 2, 7));
       expect(result).toEqual([1, 2, -2, -3, 0, 3, 4]);
     });
     it("handles the fifth example", () => {
       exampleHead = buildList([1, 2, -2, -3, 0, 3, 4]);
-      const result = listToArray(mixIndex(exampleHead, 2));
+      const result = listToArray(mixIndex(exampleHead, 2, 7));
       expect(result).toEqual([1, 2, -3, 0, 3, 4, -2]);
     });
     it("handles the sixth example (0)", () => {
       exampleHead = buildList([1, 2, -3, 0, 3, 4, -2]);
-      const result = listToArray(mixIndex(exampleHead, 3));
+      const result = listToArray(mixIndex(exampleHead, 3, 7));
       expect(result).toEqual([1, 2, -3, 0, 3, 4, -2]);
     });
     it("handles the seventh example (4)", () => {
       exampleHead = buildList([1, 2, -3, 0, 3, 4, -2]);
-      const result = listToArray(mixIndex(exampleHead, 5));
+      const result = listToArray(mixIndex(exampleHead, 5, 7));
       expect(result).toEqual([1, 2, -3, 4, 0, 3, -2]);
     });
   });
