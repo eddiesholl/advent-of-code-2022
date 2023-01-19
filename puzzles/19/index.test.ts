@@ -25,7 +25,7 @@ describe("19", () => {
   };
   describe("part 2", () => {
     describe("processBlueprints", () => {
-      it.skip("handles the example", () => {
+      it("handles the example", () => {
         expect(
           processBlueprints(
             parseLines(readLines(__dirname, "example.txt")).slice(0, 1),

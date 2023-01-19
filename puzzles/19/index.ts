@@ -1,7 +1,7 @@
 import { isContinueStatement } from "typescript";
 import { renderMinute } from "./render";
 import { notEmpty } from "../common/array";
-import { sumValues } from "../common/math";
+import { product, sum, sumValues } from "../common/math";
 
 type RobotCost = {
   ore: number;
@@ -235,49 +235,63 @@ const recurse = (
   }
 
   const actions: (Action | null)[] = [];
-  actions.push(
-    buildOrWaitAction(
-      blueprint.geodeRobotCost,
-      "geode",
-      startState,
-      finalMinute
-    )
+
+  const geodeAction = buildOrWaitAction(
+    blueprint.geodeRobotCost,
+    "geode",
+    startState,
+    finalMinute
   );
-  if (startState.obsidianRobots < maxCost.obsidian) {
-    actions.push(
-      buildOrWaitAction(
-        blueprint.obsidianRobotCost,
-        "obsidian",
-        startState,
-        finalMinute
-      )
-    );
-  } else {
-    // console.log("maxxed obsidian");
+  actions.push(geodeAction);
+
+  // If you can build a geode bot now, just do that
+  // Otherwise consider all possible actions
+  if (geodeAction?.kind !== "build") {
+    if (startState.clayRobots < maxCost.clay) {
+      actions.push(
+        buildOrWaitAction(
+          blueprint.clayRobotCost,
+          "clay",
+          startState,
+          finalMinute
+        )
+      );
+    } else {
+      // console.log("maxxed clay");
+    }
+    if (startState.oreRobots < maxCost.ore) {
+      actions.push(
+        buildOrWaitAction(
+          blueprint.oreRobotCost,
+          "ore",
+          startState,
+          finalMinute
+        )
+      );
+    } else {
+      // console.log("maxxed ore");
+    }
+    if (startState.obsidianRobots < maxCost.obsidian) {
+      actions.push(
+        buildOrWaitAction(
+          blueprint.obsidianRobotCost,
+          "obsidian",
+          startState,
+          finalMinute
+        )
+      );
+    } else {
+      // console.log("maxxed obsidian");
+    }
   }
-  if (startState.clayRobots < maxCost.clay) {
-    actions.push(
-      buildOrWaitAction(
-        blueprint.clayRobotCost,
-        "clay",
-        startState,
-        finalMinute
-      )
-    );
-  } else {
-    // console.log("maxxed clay");
-  }
-  if (startState.oreRobots < maxCost.ore) {
-    actions.push(
-      buildOrWaitAction(blueprint.oreRobotCost, "ore", startState, finalMinute)
-    );
-  } else {
-    // console.log("maxxed ore");
-  }
+
   // console.log(actions);
   // actions.push({ kind: "noop" });
   const possibleTerminals: (TerminalState | undefined)[] = [];
-  actions.filter(notEmpty).forEach((action) => {
+  actions.filter(notEmpty).forEach((action, ix) => {
+    if (currentTime < 4) {
+      console.log(`t:${currentTime} i${ix}/${actions.length}`);
+    }
     // console.log(`t ${currentTime} action:`);
     // console.log(action);
     if (action.kind === "wait" && action.readyAt > finalMinute) {
@@ -290,11 +304,11 @@ const recurse = (
     }
     const currentBestForT = bestResults[currentTime];
     if (currentBestForT && definitelyBetter(currentBestForT, endState)) {
-      console.log("bailing at " + currentTime);
+      // console.log("bailing at " + currentTime);
       return currentTerminal;
     }
     if (definitelyBetter(endState, currentBestForT)) {
-      console.log("found better at " + currentTime);
+      // console.log("found better at " + currentTime);
       bestResults[currentTime] = endState;
     }
     const snapshot = {
@@ -378,7 +392,8 @@ const snapshotToMinutes = (snapshot: Snapshot): Minute[] => {
 };
 const processBlueprints = (
   blueprints: Blueprint[],
-  finalMinute: number
+  finalMinute: number,
+  computeQuality: boolean = true
 ): number => {
   const startingState: StartState = {
     t: 1,
@@ -392,37 +407,40 @@ const processBlueprints = (
     geodeRobots: 0,
     kind: "start",
   };
-  return (
-    blueprints
-      // .slice(0, 1)
-      .map((blueprint) => {
-        console.log(blueprint);
-        const maxCost = maxCostForBlueprint(blueprint);
-        const maxGeodesOpened = recurse(
-          blueprint,
-          startingState,
-          [],
-          {},
-          maxCost,
-          finalMinute
+  const geodeScores = blueprints
+    // .slice(0, 1)
+    .map((blueprint) => {
+      // console.log(blueprint);
+      const maxCost = maxCostForBlueprint(blueprint);
+      const maxGeodesOpened = recurse(
+        blueprint,
+        startingState,
+        [],
+        {},
+        maxCost,
+        finalMinute
+      );
+      console.log("Blueprint " + blueprint.name);
+      if (maxGeodesOpened) {
+        maxGeodesOpened.snapshots
+          .map((s) => {
+            // console.log(s);
+            return s;
+          })
+          .flatMap(snapshotToMinutes)
+          .forEach(renderMinute);
+        // Switch between part 1 and 2
+        return (
+          maxGeodesOpened.finalState.geodes *
+          (computeQuality ? blueprint.name : 1)
         );
-        console.log("Blueprint " + blueprint.name);
-        if (maxGeodesOpened) {
-          maxGeodesOpened.snapshots
-            .map((s) => {
-              console.log(s);
-              return s;
-            })
-            .flatMap(snapshotToMinutes)
-            .forEach(renderMinute);
-          return maxGeodesOpened.finalState.geodes * blueprint.name;
-        } else {
-          console.log("No solution found");
-          return 0;
-        }
-      })
-      .reduce(sumValues, 0)
-  );
+      } else {
+        console.log("No solution found");
+        return 0;
+      }
+    });
+  console.log(geodeScores);
+  return computeQuality ? sum(geodeScores) : product(geodeScores);
 };
 export {
   parseLines,
