@@ -3,13 +3,15 @@ import {
   GameState,
   parseLines,
   processBlueprints,
+  Snapshot,
   snapshotToMinutes,
+  StartState,
   updateState,
   WaitAction,
 } from "./index";
 
 describe("19", () => {
-  const startingState: GameState = {
+  const startingState: StartState = {
     t: 1,
     ore: 0,
     oreRobots: 1,
@@ -19,13 +21,14 @@ describe("19", () => {
     obsidianRobots: 0,
     geodes: 0,
     geodeRobots: 0,
+    kind: "start",
   };
   describe("snapshotToMinutes", () => {
     it("handles example 1 output", () => {
-      const input = {
+      const input: Snapshot = {
         t: 1,
         after: {
-          t: 4,
+          t: 3,
           ore: 1,
           oreRobots: 1,
           clay: 0,
@@ -34,6 +37,7 @@ describe("19", () => {
           obsidianRobots: 0,
           geodes: 0,
           geodeRobots: 0,
+          kind: "end",
         },
         before: startingState,
         action: {
@@ -60,6 +64,7 @@ describe("19", () => {
             ore: 1,
             oreRobots: 1,
             t: 1,
+            kind: "end",
           },
           t: 1,
         },
@@ -76,7 +81,8 @@ describe("19", () => {
             obsidianRobots: 0,
             ore: 2,
             oreRobots: 1,
-            t: 1,
+            t: 2,
+            kind: "end",
           },
           t: 2,
         },
@@ -99,7 +105,8 @@ describe("19", () => {
             obsidianRobots: 0,
             ore: 1,
             oreRobots: 1,
-            t: 4,
+            t: 3,
+            kind: "end",
           },
           t: 3,
         },
@@ -115,6 +122,7 @@ describe("19", () => {
             t: 1,
             clayRobots: 1,
             ore: 0,
+            kind: "end",
           },
           action: {
             kind: "wait",
@@ -128,7 +136,7 @@ describe("19", () => {
         {
           t: 1,
           action: { kind: "noop" },
-          finalState: { ...startingState, ore: 1 },
+          finalState: { ...startingState, kind: "end", ore: 1 },
         },
         {
           t: 2,
@@ -137,7 +145,7 @@ describe("19", () => {
             robot: "clay",
             cost: { ore: 2, clay: 0, obsidian: 0 },
           },
-          finalState: { ...startingState, ore: 0, clayRobots: 1 },
+          finalState: { ...startingState, kind: "end", ore: 0, clayRobots: 1 },
         },
       ]);
     });
@@ -163,6 +171,7 @@ describe("19", () => {
             obsidianRobots: 0,
             geodes: 0,
             geodeRobots: 0,
+            kind: "start",
           },
           {
             kind: "build",
@@ -171,7 +180,7 @@ describe("19", () => {
           }
         )
       ).toEqual({
-        t: 4,
+        t: 3,
         ore: 2,
         clay: 0,
         geodes: 0,
@@ -180,6 +189,7 @@ describe("19", () => {
         clayRobots: 1,
         obsidianRobots: 0,
         geodeRobots: 0,
+        kind: "end",
       });
     });
     it("handles a wait action at the start", () => {
@@ -192,7 +202,7 @@ describe("19", () => {
           readyAt: 3,
         })
       ).toEqual({
-        t: 4,
+        t: 3,
         ore: 1,
         clay: 0,
         geodes: 0,
@@ -201,6 +211,7 @@ describe("19", () => {
         clayRobots: 1,
         obsidianRobots: 0,
         geodeRobots: 0,
+        kind: "end",
       });
     });
   });

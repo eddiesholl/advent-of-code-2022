@@ -19,7 +19,8 @@ type Blueprint = {
   obsidianRobotCost: RobotCost;
   geodeRobotCost: RobotCost;
 };
-type GameState = {
+type Phase = "ready" | "spent" | "harvested" | "received";
+interface GameState {
   t: number;
   ore: number;
   oreRobots: number;
@@ -29,7 +30,13 @@ type GameState = {
   obsidianRobots: number;
   geodes: number;
   geodeRobots: number;
-};
+}
+interface StartState extends GameState {
+  kind: "start";
+}
+interface EndState extends GameState {
+  kind: "end";
+}
 type RobotName = "ore" | "clay" | "obsidian" | "geode";
 
 type Noop = { kind: "noop" };
@@ -44,20 +51,20 @@ type WaitAction = {
 type Action = Noop | BuildAction | WaitAction;
 type Minute = {
   t: number;
-  finalState: GameState;
+  finalState: EndState;
   action: Action;
 };
 type Snapshot = {
   t: number;
-  before: GameState;
+  before: StartState;
   action: Action;
-  after: GameState;
+  after: EndState;
 };
 type TerminalState = {
   snapshots: Snapshot[];
-  finalState: GameState;
+  finalState: EndState;
 };
-type BestResults = Record<number, GameState>;
+type BestResults = Record<number, EndState>;
 
 const parseLines = (lines: string[]): Blueprint[] =>
   lines
@@ -135,40 +142,65 @@ const buildOrWaitAction = (
         readyAt: state.t + turnsUntilRobot,
       };
 };
-
-const consume = (prevState: GameState, cost: RobotCost): GameState => {
+const end = (prevState: StartState): EndState => ({
+  ...prevState,
+  kind: "end",
+});
+const harvest = (prevState: StartState): StartState => {
+  return {
+    ...prevState,
+    kind: "start",
+    clay: prevState.clay + prevState.clayRobots,
+    obsidian: prevState.obsidian + prevState.obsidianRobots,
+    ore: prevState.ore + prevState.oreRobots,
+    geodes: prevState.geodes + prevState.geodeRobots,
+  };
+};
+const nextMinute = (prevState: EndState): StartState => {
+  return {
+    ...prevState,
+    kind: "start",
+    t: prevState.t + 1,
+  };
+};
+const consume = (prevState: StartState, cost: RobotCost): EndState => {
   return {
     ...prevState,
     clay: prevState.clay - cost.clay,
     obsidian: prevState.obsidian - cost.obsidian,
     ore: prevState.ore - cost.ore,
+    kind: "end",
   };
 };
-const updateState = (prevState: GameState, action: Action): GameState => {
-  const deltaT = action.kind === "wait" ? action.minutes + 1 : 1;
-  // console.log("deltaT " + deltaT);
-  const nextState = {
-    ...prevState,
-    t: prevState.t + deltaT,
-    ore: prevState.ore + prevState.oreRobots * deltaT,
-    clay: prevState.clay + prevState.clayRobots * deltaT,
-    obsidian: prevState.obsidian + prevState.obsidianRobots * deltaT,
-    geodes: prevState.geodes + prevState.geodeRobots * deltaT,
-  };
-  if (action.kind === "noop") {
-    return nextState;
+const updateState = (prevState: StartState, action: Action): EndState => {
+  if (action.kind === "wait") {
+    let startState = prevState;
+    let t = 0;
+    while (t < action.minutes) {
+      startState = nextMinute(updateState(startState, { kind: "noop" }));
+      t++;
+    }
+    return updateState(startState, {
+      kind: "build",
+      robot: action.robot,
+      cost: action.cost,
+    });
+  } else if (action.kind === "noop") {
+    return end(harvest(prevState));
+  } else {
+    const nextState = harvest({ ...prevState });
+    if (action.robot === "clay") {
+      nextState.clayRobots += 1;
+    } else if (action.robot === "geode") {
+      nextState.geodeRobots += 1;
+    } else if (action.robot === "obsidian") {
+      nextState.obsidianRobots += 1;
+    } else if (action.robot === "ore") {
+      nextState.oreRobots += 1;
+    }
+    // console.log(nextState);
+    return consume(nextState, action.cost);
   }
-  if (action.robot === "clay") {
-    nextState.clayRobots += 1;
-  } else if (action.robot === "geode") {
-    nextState.geodeRobots += 1;
-  } else if (action.robot === "obsidian") {
-    nextState.obsidianRobots += 1;
-  } else if (action.robot === "ore") {
-    nextState.oreRobots += 1;
-  }
-  // console.log(nextState);
-  return consume(nextState, action.cost);
 };
 const definitelyBetter = (candidate: GameState, baseline: GameState) => {
   if (candidate === undefined) {
@@ -190,35 +222,39 @@ const definitelyBetter = (candidate: GameState, baseline: GameState) => {
 };
 const recurse = (
   blueprint: Blueprint,
-  gameState: GameState,
+  startState: StartState,
   snapshots: Snapshot[],
   bestResults: BestResults,
   maxCost: MaxCost
 ): TerminalState | undefined => {
-  const currentTime = gameState.t;
+  const currentTime = startState.t;
   // console.log(`t = ${currentTime}`);
   // console.log(gameState);
-  const currentTerminal = { snapshots, finalState: gameState };
+  const currentTerminal = { snapshots, finalState: end(harvest(startState)) };
   if (currentTime === FINAL_MINUTE) {
     return currentTerminal;
   }
 
   const actions: (Action | null)[] = [];
-  actions.push(buildOrWaitAction(blueprint.geodeRobotCost, "geode", gameState));
-  if (gameState.obsidianRobots < maxCost.obsidian) {
+  actions.push(
+    buildOrWaitAction(blueprint.geodeRobotCost, "geode", startState)
+  );
+  if (startState.obsidianRobots < maxCost.obsidian) {
     actions.push(
-      buildOrWaitAction(blueprint.obsidianRobotCost, "obsidian", gameState)
+      buildOrWaitAction(blueprint.obsidianRobotCost, "obsidian", startState)
     );
   } else {
     // console.log("maxxed obsidian");
   }
-  if (gameState.clayRobots < maxCost.clay) {
-    actions.push(buildOrWaitAction(blueprint.clayRobotCost, "clay", gameState));
+  if (startState.clayRobots < maxCost.clay) {
+    actions.push(
+      buildOrWaitAction(blueprint.clayRobotCost, "clay", startState)
+    );
   } else {
     // console.log("maxxed clay");
   }
-  if (gameState.oreRobots < maxCost.ore) {
-    actions.push(buildOrWaitAction(blueprint.oreRobotCost, "ore", gameState));
+  if (startState.oreRobots < maxCost.ore) {
+    actions.push(buildOrWaitAction(blueprint.oreRobotCost, "ore", startState));
   } else {
     // console.log("maxxed ore");
   }
@@ -231,29 +267,29 @@ const recurse = (
     if (action.kind === "wait" && action.readyAt > FINAL_MINUTE) {
       return currentTerminal;
     }
-    const nextState = updateState(gameState, action);
-    if (nextState.clay < 0 || nextState.ore < 0 || nextState.obsidian < 0) {
+    const endState = updateState(startState, action);
+    if (endState.clay < 0 || endState.ore < 0 || endState.obsidian < 0) {
       console.log("Bad state detected");
-      console.dir(nextState);
+      console.dir(endState);
     }
     const currentBestForT = bestResults[currentTime];
-    if (currentBestForT && definitelyBetter(currentBestForT, nextState)) {
+    if (currentBestForT && definitelyBetter(currentBestForT, endState)) {
       console.log("bailing at " + currentTime);
       return currentTerminal;
     }
-    if (definitelyBetter(nextState, currentBestForT)) {
+    if (definitelyBetter(endState, currentBestForT)) {
       console.log("found better at " + currentTime);
-      bestResults[currentTime] = nextState;
+      bestResults[currentTime] = endState;
     }
     const snapshot = {
       t: currentTime,
-      after: nextState,
-      before: gameState,
+      after: endState,
+      before: startState,
       action,
     };
     const terminal = recurse(
       blueprint,
-      nextState,
+      nextMinute(endState),
       snapshots.concat(snapshot),
       bestResults,
       maxCost
@@ -293,19 +329,15 @@ const snapshotToMinutes = (snapshot: Snapshot): Minute[] => {
   const result: Minute[] = [];
   if (snapshot.action.kind === "wait") {
     let t = 1;
+    let startState = snapshot.before;
     while (t <= snapshot.action.minutes) {
+      const finalState = end(harvest(startState));
       result.push({
         t: snapshot.before.t + t - 1,
         action: { kind: "noop" },
-        finalState: {
-          ...snapshot.before,
-          ore: snapshot.before.ore + snapshot.before.oreRobots * t,
-          clay: snapshot.before.clay + snapshot.before.clayRobots * t,
-          obsidian:
-            snapshot.before.obsidian + snapshot.before.obsidianRobots * t,
-          geodes: snapshot.before.geodes + snapshot.before.geodeRobots * t,
-        },
+        finalState,
       });
+      startState = nextMinute(finalState);
       t++;
     }
     result.push({
@@ -328,7 +360,7 @@ const snapshotToMinutes = (snapshot: Snapshot): Minute[] => {
   return result;
 };
 const processBlueprints = (blueprints: Blueprint[]): number => {
-  const startingState: GameState = {
+  const startingState: StartState = {
     t: 1,
     ore: 0,
     oreRobots: 1,
@@ -338,41 +370,47 @@ const processBlueprints = (blueprints: Blueprint[]): number => {
     obsidianRobots: 0,
     geodes: 0,
     geodeRobots: 0,
+    kind: "start",
   };
-  return blueprints
-    .slice(0, 1)
-    .map((blueprint) => {
-      console.log(blueprint);
-      const maxCost = maxCostForBlueprint(blueprint);
-      const maxGeodesOpened = recurse(
-        blueprint,
-        startingState,
-        [],
-        {},
-        maxCost
-      );
-      console.log("Blueprint " + blueprint.name);
-      if (maxGeodesOpened) {
-        maxGeodesOpened.snapshots
-          .map((s) => {
-            console.log(s);
-            return s;
-          })
-          .flatMap(snapshotToMinutes)
-          .forEach(renderMinute);
-        return maxGeodesOpened.finalState.geodes * blueprint.name;
-      } else {
-        console.log("No solution found");
-        return 0;
-      }
-    })
-    .reduce(sumValues, 0);
+  return (
+    blueprints
+      // .slice(0, 1)
+      .map((blueprint) => {
+        console.log(blueprint);
+        const maxCost = maxCostForBlueprint(blueprint);
+        const maxGeodesOpened = recurse(
+          blueprint,
+          startingState,
+          [],
+          {},
+          maxCost
+        );
+        console.log("Blueprint " + blueprint.name);
+        if (maxGeodesOpened) {
+          maxGeodesOpened.snapshots
+            .map((s) => {
+              console.log(s);
+              return s;
+            })
+            .flatMap(snapshotToMinutes)
+            .forEach(renderMinute);
+          return maxGeodesOpened.finalState.geodes * blueprint.name;
+        } else {
+          console.log("No solution found");
+          return 0;
+        }
+      })
+      .reduce(sumValues, 0)
+  );
 };
 export {
   parseLines,
   processBlueprints,
   Minute,
   GameState,
+  StartState,
+  EndState,
+  Snapshot,
   updateState,
   snapshotToMinutes,
   WaitAction,
