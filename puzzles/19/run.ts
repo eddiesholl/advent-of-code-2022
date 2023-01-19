@@ -7,7 +7,7 @@ import { parseLines, processBlueprints } from "./index";
 
 // Part 2
 const score = processBlueprints(
-  parseLines(readLines(__dirname, "example.txt")).slice(0, 3),
+  parseLines(readLines(__dirname, "input.txt")).slice(0, 3),
   32,
   false
 );
