@@ -107,9 +107,6 @@ const listToArray = (head: NumberWrapper): number[] => {
     if (current === head) {
       break;
     }
-    if (result.length > 20) {
-      break;
-    }
   }
   return result;
 };
