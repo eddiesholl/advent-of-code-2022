@@ -44,7 +44,13 @@ It's a while since I've needed to play with anything but product and business or
 
 These challenges have a particular flow and style. You might call it 'code golf' or 'fizzbuzz'. Recursion, DFS and BFS, search optimisation and pruning: this is a particular problem space, and for better or worse I don't have much muscle memory for this from recent years. This means my capabilities started limited and ramped up quickly through the challenges. Lots of tips and tools I found later on could be used to improve earlier rounds. I've been able to achieve this where needed, as I go back for a second pass chasing all the second stars.
 
-Based on snippets posted on `/r/adventofcode`, the most popular language choice seems to be `python` . The list comprehension capabilities yo uget out of the box makes it a much better tool for these types of challenges. Splitting head and tail of a list inline is a good example.
+### Algorithms
+
+So far I've found switching to breadth first searches instead of depth first has been much more reliable and easier to optimise, for problems where that's possible.
+
+### Language / syntax choice
+
+Based on snippets posted on `/r/adventofcode`, the most popular language choice seems to be `python` . The list comprehension capabilities you get out of the box makes it a much better tool for these types of challenges. Splitting head and tail of a list inline is a good example.
 
 The advantage of `TypeScript` is that you can break your solution down into very robust modular functions. The downside is that there is no lighter alternative. Great that the solution ends up more testable, but on balance I'm guessing there's more benefit to be had pulling on the 'less is more' stick, and removing many 'moving parts' in your solution.
 
