@@ -23,6 +23,18 @@ describe("19", () => {
     geodeRobots: 0,
     kind: "start",
   };
+  describe("part 2", () => {
+    describe("processBlueprints", () => {
+      it.skip("handles the example", () => {
+        expect(
+          processBlueprints(
+            parseLines(readLines(__dirname, "example.txt")).slice(0, 1),
+            32
+          )
+        ).toEqual(56);
+      });
+    });
+  });
   describe("snapshotToMinutes", () => {
     it("handles example 1 output", () => {
       const input: Snapshot = {
@@ -216,9 +228,9 @@ describe("19", () => {
     });
   });
   describe("processBlueprints", () => {
-    it.skip("handles the example", () => {
+    it("handles the example", () => {
       expect(
-        processBlueprints(parseLines(readLines(__dirname, "example.txt")))
+        processBlueprints(parseLines(readLines(__dirname, "example.txt")), 24)
       ).toEqual(33);
     });
   });

@@ -3,9 +3,6 @@ import { renderMinute } from "./render";
 import { notEmpty } from "../common/array";
 import { sumValues } from "../common/math";
 
-// const FINAL_MINUTE = 10;
-const FINAL_MINUTE = 24;
-
 type RobotCost = {
   ore: number;
   clay: number;
@@ -115,7 +112,8 @@ const turnsUntilAfford = (cost: RobotCost, state: GameState): number => {
 const buildOrWaitAction = (
   cost: RobotCost,
   robot: RobotName,
-  state: GameState
+  state: GameState,
+  finalMinute: number
 ): Action | null => {
   // console.log("buildOrWaitAction " + robot);
   const turnsUntilRobot = turnsUntilAfford(cost, state);
@@ -124,7 +122,7 @@ const buildOrWaitAction = (
     // console.log("bail nan");
     return null;
   }
-  if (state.t + turnsUntilRobot > FINAL_MINUTE) {
+  if (state.t + turnsUntilRobot > finalMinute) {
     // console.log("bail final_minute");
     return null;
   }
@@ -225,36 +223,54 @@ const recurse = (
   startState: StartState,
   snapshots: Snapshot[],
   bestResults: BestResults,
-  maxCost: MaxCost
+  maxCost: MaxCost,
+  finalMinute: number
 ): TerminalState | undefined => {
   const currentTime = startState.t;
   // console.log(`t = ${currentTime}`);
   // console.log(gameState);
   const currentTerminal = { snapshots, finalState: end(harvest(startState)) };
-  if (currentTime === FINAL_MINUTE) {
+  if (currentTime === finalMinute) {
     return currentTerminal;
   }
 
   const actions: (Action | null)[] = [];
   actions.push(
-    buildOrWaitAction(blueprint.geodeRobotCost, "geode", startState)
+    buildOrWaitAction(
+      blueprint.geodeRobotCost,
+      "geode",
+      startState,
+      finalMinute
+    )
   );
   if (startState.obsidianRobots < maxCost.obsidian) {
     actions.push(
-      buildOrWaitAction(blueprint.obsidianRobotCost, "obsidian", startState)
+      buildOrWaitAction(
+        blueprint.obsidianRobotCost,
+        "obsidian",
+        startState,
+        finalMinute
+      )
     );
   } else {
     // console.log("maxxed obsidian");
   }
   if (startState.clayRobots < maxCost.clay) {
     actions.push(
-      buildOrWaitAction(blueprint.clayRobotCost, "clay", startState)
+      buildOrWaitAction(
+        blueprint.clayRobotCost,
+        "clay",
+        startState,
+        finalMinute
+      )
     );
   } else {
     // console.log("maxxed clay");
   }
   if (startState.oreRobots < maxCost.ore) {
-    actions.push(buildOrWaitAction(blueprint.oreRobotCost, "ore", startState));
+    actions.push(
+      buildOrWaitAction(blueprint.oreRobotCost, "ore", startState, finalMinute)
+    );
   } else {
     // console.log("maxxed ore");
   }
@@ -264,7 +280,7 @@ const recurse = (
   actions.filter(notEmpty).forEach((action) => {
     // console.log(`t ${currentTime} action:`);
     // console.log(action);
-    if (action.kind === "wait" && action.readyAt > FINAL_MINUTE) {
+    if (action.kind === "wait" && action.readyAt > finalMinute) {
       return currentTerminal;
     }
     const endState = updateState(startState, action);
@@ -292,7 +308,8 @@ const recurse = (
       nextMinute(endState),
       snapshots.concat(snapshot),
       bestResults,
-      maxCost
+      maxCost,
+      finalMinute
     );
     possibleTerminals.push(terminal);
   });
@@ -359,7 +376,10 @@ const snapshotToMinutes = (snapshot: Snapshot): Minute[] => {
   // console.log(result);
   return result;
 };
-const processBlueprints = (blueprints: Blueprint[]): number => {
+const processBlueprints = (
+  blueprints: Blueprint[],
+  finalMinute: number
+): number => {
   const startingState: StartState = {
     t: 1,
     ore: 0,
@@ -383,7 +403,8 @@ const processBlueprints = (blueprints: Blueprint[]): number => {
           startingState,
           [],
           {},
-          maxCost
+          maxCost,
+          finalMinute
         );
         console.log("Blueprint " + blueprint.name);
         if (maxGeodesOpened) {
