@@ -1,5 +1,3 @@
-import { renderLinkedList } from "./render";
-
 type WrapperBuilder = {
   value: number;
   originalIndex: number;
@@ -56,7 +54,7 @@ const insertBefore = (newItem: NumberWrapper, head: NumberWrapper) => {
   newItem.next = head;
   head.previous = newItem;
 };
-const shiftRight = (shiftTarget: NumberWrapper, numberCount: number): void => {
+const shiftRight = (shiftTarget: NumberWrapper): void => {
   const shiftCount = shiftTarget.value;
   // const shiftCount = shiftTarget.value % (numberCount - 1);
   let i = 0;
@@ -72,7 +70,7 @@ const shiftRight = (shiftTarget: NumberWrapper, numberCount: number): void => {
   // console.log(renderLinkedList(shiftTarget));
 };
 // [3,2,-1,4] -> [3,2,4] -> [3,-1,2,4]
-const shiftLeft = (shiftTarget: NumberWrapper, numberCount: number): void => {
+const shiftLeft = (shiftTarget: NumberWrapper): void => {
   const shiftCount = shiftTarget.value;
   let i = 0;
   let newHead = unlink(shiftTarget);
@@ -85,28 +83,24 @@ const shiftLeft = (shiftTarget: NumberWrapper, numberCount: number): void => {
 
 const mixIndex = (
   head: NumberWrapper,
-  originalIndex: number,
-  numberCount: number
+  originalIndex: number
 ): NumberWrapper => {
   const target = findTarget(head, originalIndex);
   if (target.value === 0) {
     return head;
   } else if (target.value > 0) {
-    shiftRight(target, numberCount);
+    shiftRight(target);
   } else {
-    shiftLeft(target, numberCount);
+    shiftLeft(target);
   }
   return head;
 };
 const listToArray = (head: NumberWrapper): number[] => {
-  const result: number[] = [];
-  let current = head;
-  while (true) {
+  const result: number[] = [head.value];
+  let current = head.next;
+  while (current !== head) {
     result.push(current.value);
     current = current.next;
-    if (current === head) {
-      break;
-    }
   }
   return result;
 };
@@ -116,7 +110,7 @@ const mixFile = (numbers: number[]): number[] => {
   const numberCount = numbers.length;
   let n = 0;
   while (n < numberCount) {
-    head = mixIndex(head, n, numberCount);
+    head = mixIndex(head, n);
 
     n++;
   }

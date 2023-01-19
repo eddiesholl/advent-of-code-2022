@@ -1,6 +1,6 @@
-export default {
+{
   "parserOptions": {
-    "sourceType": "module",
+    "sourceType": "module"
   },
   "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   "parser": "@typescript-eslint/parser",
