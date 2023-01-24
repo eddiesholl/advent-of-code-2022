@@ -175,9 +175,10 @@ const applyWalkCube = (
   distance: number
 ): Location => {
   let newLoc = { ...startLoc };
+  // console.log(`Walk ${distance} from ${startLoc.x},${startLoc.y}`);
   let d = 0;
   while (d < distance) {
-    const candidateLoc = getCandidateLoc(newLoc);
+    const candidateLoc = getCandidateLocCube(newLoc);
     const candidateRow = grid[candidateLoc.y];
     if (candidateRow) {
       const candidateCell = candidateRow[candidateLoc.x];
@@ -186,48 +187,13 @@ const applyWalkCube = (
           break;
         } else if (candidateCell === ".") {
           newLoc = candidateLoc;
-        } else {
-          // We've struck a closed cell, and need to wrap
-          if (newLoc.bearing === "left" || newLoc.bearing === "right") {
-            const candidateLoc = firstCellInRow(newLoc.y, newLoc.bearing, grid);
-            if (candidateLoc) {
-              newLoc = candidateLoc;
-            } else {
-              break;
-            }
-          } else {
-            const candidateLoc = firstCellInColumn(
-              newLoc.x,
-              newLoc.bearing,
-              grid
-            );
-            if (candidateLoc) {
-              newLoc = candidateLoc;
-            } else {
-              break;
-            }
-          }
         }
-      } else {
-        // We must have wrapped horizontally. Check if its possible to wrap in this current row
-        const candidateLoc = firstCellInRow(newLoc.y, newLoc.bearing, grid);
-        if (candidateLoc) {
-          newLoc = candidateLoc;
-        } else {
-          break;
-        }
-      }
-    } else {
-      // We must have wrapped vertically. Check if it's possible to wrap in this current column
-      const candidateLoc = firstCellInColumn(newLoc.x, newLoc.bearing, grid);
-      if (candidateLoc) {
-        newLoc = candidateLoc;
-      } else {
-        break;
       }
     }
     d++;
   }
+  // console.log(`Travelled to ${newLoc.x},${newLoc.y}`);
+
   return newLoc;
 };
 const isInZone = (
@@ -247,10 +213,9 @@ const isInZone = (
 const getCandidateLocCube = (l: Location): Location => {
   const i = getCandidateLoc(l);
   let translatedLoc: Location;
-  console.log(i);
   if (isInZone(i.x, 49, i.y, 0, 49)) {
     // E -> B
-    translatedLoc = { x: 0, y: 100 + i.y, bearing: "right" };
+    translatedLoc = { x: 0, y: 149 - i.y, bearing: "right" };
   } else if (isInZone(i.y, -1, i.x, 50, 99)) {
     // E -> A
     translatedLoc = { x: 0, y: 100 + i.x, bearing: "right" };
@@ -268,7 +233,7 @@ const getCandidateLocCube = (l: Location): Location => {
     translatedLoc = { x: i.y + 50, y: 49, bearing: "up" };
   } else if (isInZone(i.x, 100, i.y, 100, 149)) {
     // C -> F
-    translatedLoc = { x: 149, y: 150 - l.y, bearing: "left" };
+    translatedLoc = { x: 149, y: 149 - l.y, bearing: "left" };
   } else if (isInZone(i.y, 150, i.x, 50, 99)) {
     // C -> A
     translatedLoc = { x: 49, y: 100 + l.x, bearing: "left" };
@@ -288,7 +253,6 @@ const getCandidateLocCube = (l: Location): Location => {
     // B -> D
     translatedLoc = { x: 50, y: 50 + i.x, bearing: "right" };
   } else if (isInZone(i.x, 49, i.y, 50, 99, i.bearing, "left")) {
-    console.log("D -> B");
     // D -> B
     translatedLoc = { x: i.y - 50, y: 100, bearing: "down" };
   } else {
