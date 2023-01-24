@@ -2,17 +2,19 @@
 
 https://adventofcode.com/2022
 
-Current progress: 42/50 ⭐️
+Current progress: 45/50 ⭐️
 
 ## Welcome
 
-This is my first year taking part in the [Advent of Code](https://adventofcode.com/) initiative. I've had my eye on it for many years, but December is always such a busy time of the year, I've always felt a bit too swamped. In theory I was going to have a bit more time this Summer, although thanks to COVID and a few other unexpected mishaps, it didn't quite turn out that way.
+This is my first year taking part in the [Advent of Code](https://adventofcode.com/) initiative. I've had my eye on it for many years, but December is always such a busy time of the year, I've always felt a bit too swamped. In theory I was going to have a bit more time this Summer, although thanks to COVID and a few other unexpected mishaps, it didn't turn out that way.
 
 To make the most of my time, and to try to keep up with the daily release pattern, I targeted just the first star for each challenge, with a plan to come back through and chase all the second stars for each one.
 
+I've finished my work on this for now. I've been through a second pass, chasing as many second stars as I can, without burning days on each one. There's a couple I'll leave unfinished, from the looks of it.
+
 ## Tech stack
 
-As much as I'd love to use this year as a learning / brushing up exersize for an alternate stack, I thought I'd keep things simple for my first time around. It's mostly set up with an ecosystem I know well. I've aimed for the solutions to be 'native' as much as possible, so very few packages to help with computation:
+As much as I'd love to use this year as a learning / brushing up exersize for an alternate stack, I thought I'd keep things simple for my first time around. It's mostly set up with an ecosystem I know well. I've aimed for the solutions to be 'native' TypeScript as much as possible, so very few packages to help with computation:
 
 - Node version manager: `nvm`
 - Node version: `v16`
