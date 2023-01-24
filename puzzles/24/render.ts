@@ -41,7 +41,14 @@ const renderGrid = (grid: Grid, blizzards: Blizzard[], player?: Location) => {
   let lastLine = "";
   x = 0;
   while (x < grid.width) {
-    lastLine = lastLine + (x === grid.end.x ? "." : "#");
+    // lastLine = lastLine + (x === grid.end.x ? "." : "#");
+    lastLine =
+      lastLine +
+      (x === grid.end.x
+        ? player && player.y === grid.height - 1
+          ? "P"
+          : "."
+        : "#");
     x++;
   }
   console.log(lastLine);
@@ -50,7 +57,9 @@ const renderGrid = (grid: Grid, blizzards: Blizzard[], player?: Location) => {
 // Minute 1, move down
 const renderMoves = (moves: Turn[]) => {
   moves.forEach((m) => {
-    console.log(`Minute ${m.t}, move ${m.move}`);
+    console.log(
+      `Minute ${m.t}, move ${m.move}, to ${m.player.x},${m.player.y}`
+    );
   });
 };
 

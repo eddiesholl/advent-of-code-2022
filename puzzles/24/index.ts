@@ -1,5 +1,5 @@
 import { Location, locationEquals } from "../common/location";
-import { renderGrid } from "./render";
+import { renderGrid, renderMoves } from "./render";
 
 type Direction = ">" | "<" | "^" | "v";
 type Blizzard = {
@@ -24,11 +24,14 @@ type MoveResult = {
 type Turn = {
   move: Move;
   t: number;
+  player: Location;
+  blizzards: Blizzard[];
 };
 type ChoiceNode = {
   t: number;
   move: Move;
   player: Location;
+  blizzards: Blizzard[];
   parent?: ChoiceNode;
 };
 const updateBlizzards = (blizzards: Blizzard[], grid: Grid) => {
@@ -74,17 +77,26 @@ const findPossibleMoves = (
   const up = { x, y: y - 1 };
   const down = { x, y: y + 1 };
   const moveDown = { move: "v", destination: down } as MoveResult;
+  const moveUp = { move: "^", destination: up } as MoveResult;
   if (locationEquals(down)(grid.end)) {
-    return [moveDown];
+    moves.push(moveDown);
   }
-  if (y > 0 && x > 1 && noBlizzardsAt(blizzards, left)) {
+  if (locationEquals(up)(grid.end)) {
+    moves.push(moveUp);
+  }
+  if (y > 0 && y < grid.height - 1 && x > 1 && noBlizzardsAt(blizzards, left)) {
     moves.push({ move: "<", destination: left });
   }
-  if (y > 0 && x < grid.width - 2 && noBlizzardsAt(blizzards, right)) {
+  if (
+    y > 0 &&
+    y < grid.height - 1 &&
+    x < grid.width - 2 &&
+    noBlizzardsAt(blizzards, right)
+  ) {
     moves.push({ move: ">", destination: right });
   }
   if (y > 1 && noBlizzardsAt(blizzards, up)) {
-    moves.push({ move: "^", destination: up });
+    moves.push(moveUp);
   }
   if (y < grid.height - 2 && noBlizzardsAt(blizzards, down)) {
     moves.push(moveDown);
@@ -100,6 +112,7 @@ const scan = (grid: Grid, state: GameState): Turn[] => {
     t: 0,
     move: "^",
     player: grid.start,
+    blizzards: state.blizzards,
     // player: { x: grid.start.x, y: grid.start.y + 1 },
   };
   let currentChoices = [root];
@@ -147,6 +160,7 @@ const scan = (grid: Grid, state: GameState): Turn[] => {
           parent: choice,
           move: m.move,
           player: m.destination,
+          blizzards: currentBlizzards,
         })
       );
     });
@@ -168,7 +182,12 @@ const scan = (grid: Grid, state: GameState): Turn[] => {
   return result
     .reverse()
     .filter((n) => n.t > 0)
-    .map((n) => ({ move: n.move, t: n.t }));
+    .map((n) => ({
+      move: n.move,
+      t: n.t,
+      blizzards: n.blizzards,
+      player: n.player,
+    }));
 };
 const processMoves = (grid: Grid, blizzards: Blizzard[]) => {
   const initialState: GameState = {
@@ -178,6 +197,42 @@ const processMoves = (grid: Grid, blizzards: Blizzard[]) => {
   const turns = scan(grid, initialState);
   return turns;
 };
+const processPart2 = (grid: Grid, blizzards: Blizzard[]) => {
+  const initialState: GameState = {
+    player: grid.start,
+    blizzards,
+  };
+  const returnGrid = { ...grid, end: grid.start, start: grid.end };
+  const turnsToEnd1 = scan(grid, initialState);
+  renderMoves(turnsToEnd1);
+  const t1Final = turnsToEnd1.slice(-1)[0];
+  console.log(t1Final.player);
+  renderGrid(grid, t1Final.blizzards, t1Final.player);
+
+  const stateReturn1: GameState = {
+    player: grid.start,
+    blizzards: t1Final.blizzards,
+  };
+  const turnsToStart1 = scan(returnGrid, stateReturn1);
+  renderMoves(turnsToStart1);
+  const t2Final = turnsToStart1.slice(-1)[0];
+  console.log(t2Final.player);
+  renderGrid(grid, t2Final.blizzards, t2Final.player);
+  const stateThereAgain: GameState = {
+    player: grid.start,
+    blizzards: t2Final.blizzards,
+  };
+  const turnsToEnd2 = scan(grid, stateThereAgain);
+  renderMoves(turnsToEnd2);
+  const t3Final = turnsToEnd2.slice(-1)[0];
+
+  renderGrid(grid, t3Final.blizzards, t3Final.player);
+
+  console.log(
+    `${turnsToEnd1.length} ${turnsToStart1.length} ${turnsToEnd2.length}`
+  );
+  return turnsToEnd1.length + turnsToStart1.length + turnsToEnd2.length;
+};
 export {
   Direction,
   Blizzard,
@@ -186,4 +241,5 @@ export {
   processMoves,
   updateBlizzards,
   findPossibleMoves,
+  processPart2,
 };
