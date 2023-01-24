@@ -84,7 +84,7 @@ const getCountByLocation = (elfs: Elf[]) => {
   });
   return counts;
 };
-const makeTurn = (elfs: Elf[], direction: Direction): Elf[] => {
+const makeTurn = (elfs: Elf[], direction: Direction) => {
   // phase 1 - consider neighbours.
   // Propose a move if there is one
   const proposalsByIndex: Record<number, Elf> = {};
@@ -105,6 +105,7 @@ const makeTurn = (elfs: Elf[], direction: Direction): Elf[] => {
     }
   });
 
+  let moved = 0;
   const proposalValues = Object.values(proposalsByIndex);
   const countByLocation = getCountByLocation(proposalValues);
   const newElfs = elfs.map((elf, ix) => {
@@ -112,13 +113,14 @@ const makeTurn = (elfs: Elf[], direction: Direction): Elf[] => {
     if (proposalForMe) {
       const id = elfId(proposalForMe);
       if (countByLocation[id] === 1) {
+        moved++;
         return proposalForMe;
       }
     }
     // console.log("no proposal");
     return { ...elf };
   });
-  return newElfs;
+  return { elfs: newElfs, moved };
 };
 const processMoves = (elfs: Elf[]): Elf[] => {
   let direction = NORTH;
@@ -127,7 +129,7 @@ const processMoves = (elfs: Elf[]): Elf[] => {
   renderElfs(elfs, turn);
 
   while (turn <= 10) {
-    current = makeTurn(current, direction);
+    current = makeTurn(current, direction).elfs;
     renderElfs(current, turn);
 
     direction = direction.next;
@@ -149,6 +151,31 @@ const calculateScore = (elfs: Elf[]): number => {
   );
   return (xMax - xMin + 1) * (yMax - yMin + 1) - elfs.length;
 };
+
+// Part 2
+const runUntilStop = (elfs: Elf[]): number => {
+  console.log(elfs.length);
+  let direction = NORTH;
+  let current = [...elfs];
+  let turn = 0;
+  // renderElfs(elfs, turn);
+
+  let didMove = true;
+  while (didMove) {
+    const result = makeTurn(current, direction);
+    didMove = result.moved > 0;
+    console.log(`turn ${turn} moved ${result.moved}`);
+    current = result.elfs;
+    if (turn % 100 === 0) {
+      renderElfs(current, turn);
+    }
+
+    direction = direction.next;
+    turn++;
+  }
+  return turn;
+};
+
 export {
   Elf,
   processMoves,
@@ -160,4 +187,5 @@ export {
   WEST,
   elfId,
   findNeighbours,
+  runUntilStop,
 };
